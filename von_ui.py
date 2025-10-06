@@ -52,11 +52,21 @@ class Delta_Animations_Advanced(bpy.types.Panel):
     bl_category = 'VonSourceTools'
 
     def draw(self, context):
+        scene = context.scene
+        toolBox = scene.toolBox
+
         layout = self.layout
         layout.label(text="Delta Animation Trick Advanced")
-        layout.operator("von.deltaanimtrick_importrequiredproperties")
-        layout.operator("von.deltaanimtrick_partone", icon='PLAY')
-        layout.operator("von.deltaanimtrick_parttwo", icon='PLAY')
+
+        box = layout.box()
+        box.label(text = "Settings -")
+        box.prop(toolBox, "float_deltaAnim_simmilarityThreshold")
+
+        box = layout.box()
+        box.label(text = "Functions -")
+        box.operator("von.deltaanimtrick_importrequiredproperties")
+        box.operator("von.deltaanimtrick_partone", icon='PLAY')
+        box.operator("von.deltaanimtrick_parttwo", icon='PLAY')
 
 
 

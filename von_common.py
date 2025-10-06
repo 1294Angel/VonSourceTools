@@ -19,6 +19,13 @@ from pathlib import Path
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+def reselect_all(objectsToSelect:list, targetobj):
+    bpy.ops.object.select_all(action='DESELECT')
+    for o in objectsToSelect:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = targetobj
+    
+
 def move_object_to_collection(objName:str, targetCollection:str):
     print(targetCollection)
     if targetCollection in bpy.data.collections:
@@ -45,7 +52,6 @@ def object_exists(name: str) -> bool:
     return doesExist
 
 def importitemfromdict(name:str, collection:str, targetdict:dict):
-    print(f"IMPORT FROM DICT ------- collection = {collection}")
     filepath: str = ""
     try:
         bpy.ops.import_scene.fbx(filepath=str(targetdict[name]))
@@ -183,7 +189,7 @@ def deltaanimtrick_valvebipeds_2():
     return valvebipeds2
 
 def deltaanimtrick_armaturefilelocations():
-
+    print("---------Running Delta Anim Armature File Locations Definition ----------")
     base_dir = Path(__file__).parent / "storeditems" / "deltaanimtrick"
     armaturelocations = {
         "proportions": base_dir / "proportions.fbx",
@@ -200,14 +206,15 @@ def deltaanimtrick_armaturefilelocations():
 
 
 class VonData(bpy.types.PropertyGroup):
-    bpy.props.BoolProperty(
-    name="",
-    description="",
-    default=False,
-    options={'ANIMATABLE'},
-    override={'LIBRARY_OVERRIDABLE'},
-    subtype='NONE'   # 'NONE', 'LAYER', 'TOGGLE', 'FILE_PATH', 'DIR_PATH'
-)
+
+    float_deltaAnim_simmilarityThreshold : bpy.props.FloatProperty(
+        name="Simmilarity Threshhold",
+        description="Percentage of bones need to match the default valve biped armature in order to be valid.",
+        default=90.0,
+        min=0.0, max=100.0,
+        soft_min=0.0, soft_max=100.0,
+        step=1.0,
+    ) # type: ignore
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

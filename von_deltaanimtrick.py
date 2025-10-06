@@ -8,66 +8,81 @@ from . import von_common
 
 
 #-------------------------------------------------------------------------------------------------------------
-def delta_anim_trick_one(armature):
+
+def delta_anim_trick_one(sourceArmature: bpy.types.Object):
+    if 'proportions' not in bpy.data.objects:
+        raise Exception("No armature named 'proportions' found in the scene.")
+    targetArmature = bpy.data.objects['proportions']
+
+    if targetArmature.type != 'ARMATURE':
+        raise TypeError(f"Target armature 'proportions' must be an ARMATURE, not {targetArmature.type}")
+    if sourceArmature.type != 'ARMATURE':
+        raise TypeError(f"Source armature must be an ARMATURE, not {sourceArmature.type}")
+
     valvebipeds = von_common.deltaanimtrick_valvebipeds_1()
+
     valvebipeds2 = von_common.deltaanimtrick_valvebipeds_2()
 
-    target = valvebipeds2[::2]
-    sub = valvebipeds2[1::2]
-
+    targetBones = valvebipeds2[::2]
+    subBones = valvebipeds2[1::2]
     d = OrderedDict()
-    for i, value in enumerate(sub):
-        key = 'var' + str(i)
-        d[key] = value 
-        
-    for i in valvebipeds:
-        objbone = bpy.data.objects['proportions'].pose.bones[i].constraints
-        
-        if armature.pose.bones.get(i) is not None:
-            objbone.new('COPY_LOCATION')
-            objbone['Copy Location'].target = armature
-            objbone['Copy Location'].subtarget = i
+    for idx, value in enumerate(subBones):
+        d[f'var{idx}'] = value
 
-    for j, k in enumerate(target):
-        objbone2 = bpy.data.objects['proportions'].pose.bones[k].constraints
-        
-        if armature.pose.bones.get(k) is not None:
-            objbone2.new('LOCKED_TRACK')
-            objbone2['Locked Track'].target = armature
-            objbone2['Locked Track'].subtarget = d["var"+str(j)]
-            objbone2['Locked Track'].track_axis = 'TRACK_X'
-            objbone2['Locked Track'].lock_axis = 'LOCK_Z'
-            objbone2.new('LOCKED_TRACK')
-            objbone2['Locked Track.001'].target = armature
-            objbone2['Locked Track.001'].subtarget = d["var"+str(j)]
-            objbone2['Locked Track.001'].track_axis = 'TRACK_X'
-            objbone2['Locked Track.001'].lock_axis = 'LOCK_Y'
+    for boneName in valvebipeds:
+        if boneName not in targetArmature.pose.bones:
+            continue
+        targetBone = targetArmature.pose.bones[boneName].constraints
 
-    #removes LOCKED_TRACK on parent if child constraint is empty			
-    for l in valvebipeds:
-        objbone3 = bpy.data.objects['proportions'].pose.bones[l]
-            
-        for child in objbone3.children:    
-            objbone4 = bpy.data.objects['proportions'].pose.bones[child.name].constraints
-            
-            if not objbone4.keys():
-                if objbone3.parent is not None:
-                    objbone5 = bpy.data.objects['proportions'].pose.bones[l].constraints
-                    
-                    for constraint in objbone5:
-                        if constraint.name != 'Copy Location':
-                            objbone5.remove(constraint)
-        
-            print(l+' is a parent of '+child.name+' with constraint: ',objbone3.constraints.keys())
-            
-    bpy.data.objects['proportions'].hide_set(False)
-    bpy.data.objects[armature.name].hide_set(True)
-    bpy.context.view_layer.objects.active = bpy.data.objects['proportions']
-    bpy.data.objects['proportions'].select_set(True)
+        if 'Copy Location' not in targetBone:
+            c = targetBone.new('COPY_LOCATION')
+            c.name = 'Copy Location'
+            c.target = sourceArmature
+            c.subtarget = boneName
+
+    for idx, boneName in enumerate(targetBones):
+        if boneName not in targetArmature.pose.bones:
+            continue
+        targetBone = targetArmature.pose.bones[boneName].constraints
+
+        c1 = targetBone.new('LOCKED_TRACK')
+        c1.name = 'Locked Track_XZ'
+        c1.target = sourceArmature
+        c1.subtarget = d[f'var{idx}']
+        c1.track_axis = 'TRACK_X'
+        c1.lock_axis = 'LOCK_Z'
+
+        c2 = targetBone.new('LOCKED_TRACK')
+        c2.name = 'Locked Track_XY'
+        c2.target = sourceArmature
+        c2.subtarget = d[f'var{idx}']
+        c2.track_axis = 'TRACK_X'
+        c2.lock_axis = 'LOCK_Y'
+
+    for boneName in valvebipeds:
+        if boneName not in targetArmature.pose.bones:
+            continue
+        parentBone = targetArmature.pose.bones[boneName]
+
+        for child in parentBone.children:
+            childConstraints = targetArmature.pose.bones[child.name].constraints
+            if not childConstraints.keys():
+                for constraint in parentBone.constraints:
+                    if constraint.type != 'COPY_LOCATION':
+                        parentBone.constraints.remove(constraint)
+
+    targetArmature.hide_set(False)
+    sourceArmature.hide_set(True)
+    bpy.context.view_layer.objects.active = targetArmature
+    targetArmature.select_set(True)
     bpy.ops.object.mode_set(mode='POSE')
+
+    print(f"'proportions' aligned to {sourceArmature.name} successfully!")
+
 
 
 def delta_anim_trick_two(arm):
+    print("---------Running Delta Anim Trick Two Definition ----------")
     arm2 = bpy.data.objects['proportions']
     objects = bpy.context.scene.objects
 
@@ -138,6 +153,7 @@ def delta_anim_trick_two(arm):
 #-------------------------------------------------------------------------------------------------------------
 
 def toevertical(bone):
+    print("---------Running Delta Anim Trick Toe Vertical Definition ----------")
     object = bpy.context.active_object
     if object.mode == "EDIT":
         raise Exception('Object Mode not Edit Mode.')
@@ -149,8 +165,9 @@ def toevertical(bone):
 
 
 def clearposeboneconstraints(bone):
+    print("---------Running Delta Anim Trick Clear Pose Definition ----------")
     object = bpy.context.active_object
-    if object.mode == "POSE":
+    if object.mode != "POSE":
         raise Exception('Object Mode not Pose Mode.')
     for constraint in bone.constraints:
         if constraint.type == "COPY_LOCATION":
