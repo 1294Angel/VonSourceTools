@@ -61,8 +61,6 @@ def is_valve_biped(armature, context):
         return True
     else:
         return False
-
-
             
 class Vonpanel_DeltaAnimTrick_ImportRequiredProperties(bpy.types.Operator):
     bl_idname = "von.deltaanimtrick_importrequiredproperties"
@@ -76,7 +74,6 @@ class Vonpanel_DeltaAnimTrick_ImportRequiredProperties(bpy.types.Operator):
             return{'CANCELLED'}
         return{'FINISHED'}
 
-
 class VonPanel_DeltaAnimTrick_PartOne(bpy.types.Operator):
     bl_idname = "von.deltaanimtrick_partone"
     bl_label = "Delta Anim Trick (One)"
@@ -89,7 +86,7 @@ class VonPanel_DeltaAnimTrick_PartOne(bpy.types.Operator):
 
         hasProportions, hasMaleRef, hasFemaleRef = has_properties()
 
-        if hasProportions and hasMaleRef and hasFemaleRef == True:
+        if hasProportions and hasMaleRef and hasFemaleRef:
             #Get selected armatures
             obj = [obj for obj in bpy.data.objects if obj.type == "ARMATURE"]
             #Run once on each valid armature
@@ -109,12 +106,12 @@ class VonPanel_DeltaAnimTrick_PartTwo(bpy.types.Operator):
         hasFemaleRef: bool = False
         hasProportions, hasMaleRef, hasFemaleRef = has_properties()
 
-        if hasProportions and hasMaleRef and hasFemaleRef == True:
+        if hasProportions and hasMaleRef and hasFemaleRef:
             #Get selected armatures
             obj = [obj for obj in bpy.data.objects if obj.type == "ARMATURE"]
             #Run once on each valid armature
             for armature in obj:
-                von_deltaanimtrick.delta_anim_trick_two(armature)
+                von_deltaanimtrick.delta_anim_trick_two(armature.name)
             return{"FINISHED"}
         return{'CANCELLED'}
 
@@ -152,8 +149,6 @@ class VonPanel_DeltaAnimTrick_Full(bpy.types.Operator):
 
         
 
-        originalviewmode = bpy.context.active_object
-
         print("Checkpoint 1")
         #Import reference armatures
         hasProportions: bool = False
@@ -162,7 +157,7 @@ class VonPanel_DeltaAnimTrick_Full(bpy.types.Operator):
         hasProportions, hasMaleRef, hasFemaleRef = has_properties()
         von_common.reselect_all(obj, obj[0])
 
-        if hasProportions and hasMaleRef and hasFemaleRef == True:
+        if hasProportions and hasMaleRef and hasFemaleRef:
             for armatureDataBlock in obj:
                 print(armatureDataBlock)
                 bpy.context.view_layer.objects.active = obj[0]
@@ -177,30 +172,59 @@ class VonPanel_DeltaAnimTrick_Full(bpy.types.Operator):
 
                 von_deltaanimtrick.delta_anim_trick_one(armatureDataBlock)
 
-                print("Checkpoint 3")
+
+
+                #NEEDS TO ONLY AFFECT PROPORTIONS BONES
+                proportionsArmature = bpy.data.objects["proportions"]
+                bpy.context.view_layer.objects.active = proportionsArmature
                 bpy.ops.object.mode_set(mode='EDIT')
-                for bone in editbones:
-                    von_deltaanimtrick.toevertical(bone)
+                proportionsEditBones = proportionsArmature.data.edit_bones
+                for bone in proportionsEditBones:
+                    if bone.name == "ValveBiped.Bip01_L_Toe0" or bone.name == "ValveBiped.Bip01_L_Toe0":
+                        von_deltaanimtrick.toevertical(bone)
             
-                bpy.ops.object.mode_set(mode='POSE')
-                bpy.ops.pose.armature_apply(selected=False)
-
-                print("Checkpoint 4")
-                bpy.ops.object.mode_set(mode='POSE')
-                for bone in posebones:
-                    von_deltaanimtrick.clearposeboneconstraints(bone)
                 
-                von_deltaanimtrick.delta_anim_trick_two(armature)
+                
 
-            bpy.ops.object.mode_set(mode=originalviewmode)
-            print("CHECKPOINT 5")
+                bpy.context.view_layer.objects.active = proportionsArmature
+                bpy.ops.object.mode_set(mode='POSE')
+                proportionsPoseBones = proportionsArmature.pose.bones
+                bpy.ops.pose.armature_apply(selected=False)
+                for bone in proportionsPoseBones:
+                    von_deltaanimtrick.clearposeboneconstraints(bone, proportionsArmature)
+                
+                von_deltaanimtrick.delta_anim_trick_two(armature.name)
+            bpy.context.view_layer.objects.active = proportionsArmature
+            bpy.ops.object.mode_set(mode='OBJECT')
+            self.report({'INFO'}, "Delta Anim Trick Successful | Test in HLMV and use advanced process if unsucessful")
             return{"FINISHED"}
         return{'CANCELLED'}
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
-# SMD Exporter Script
+# QC Generator Script
 #-------------------------------------------------
+def qcoptions(context):
+     scene = context.scene
+     data = {
+        "modelType": scene.qc_model_type,                # PROP / CHARACTER / NPC
+        "modelName": scene.qc_model_name,                # "cratestack"
+        "outputPath": bpy.path.abspath(scene.qc_output_path),
+        "cdMaterials": scene.qc_material_path,           # e.g. "models/props/"
+        "smdPath": scene.qc_smd_path,                    # e.g. "//exports/cratestack.smd"
+        "collisionModel": scene.qc_collision_path,       # e.g. "//exports/cratestack_phys.smd"
+        "scale": scene.qc_scale,                         # numeric, e.g. 1.0
+        "bodygroup": scene.qc_bodygroup or "Body",
+        "surfaceProp": scene.qc_surfaceprop or "metal",
+        "staticProp": scene.qc_staticprop,               # bool
+        "sequenceName": scene.qc_sequence or "idle",     # for characters/NPCs
+    }
 
+class qcgenerator():
+    print("Running QC Generator")
+
+    #Get location of VMT file
+    #Get all materials on object
+    #Get optionals
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------

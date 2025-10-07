@@ -27,7 +27,6 @@ def reselect_all(objectsToSelect:list, targetobj):
     
 
 def move_object_to_collection(objName:str, targetCollection:str):
-    print(targetCollection)
     if targetCollection in bpy.data.collections:
         targetCollection = bpy.data.collections[targetCollection]
     else:
@@ -59,7 +58,10 @@ def importitemfromdict(name:str, collection:str, targetdict:dict):
         raise ImportError(f"Object {name} not found")
     move_object_to_collection(name, collection)
 
-
+def set_object_mode(obj, mode:str="OBJECT"):
+        bpy.context.view_layer.objects.active = obj
+        obj.select_set(True)
+        bpy.ops.object.mode_set(mode=mode)
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -198,6 +200,36 @@ def deltaanimtrick_armaturefilelocations():
     }
     return armaturelocations
 
+
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    # QC Data Storage
+
+#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+def qc_types():
+    qcDefaults = {
+        "PROP": {
+            "flags": ["$staticprop"],
+            "sections": ["$modelname", "$cdmaterials", "$body", "$sequence", "$collisionmodel"]
+        },
+        "CHARACTER": {
+            "flags": [],
+            "sections": ["$modelname", "$cdmaterials", "$body", "$sequence", "$collisionmodel", "$attachment"]
+        },
+        "NPC": {
+            "flags": [],
+            "sections": ["$modelname", "$cdmaterials", "$body", "$sequence", "$collisionmodel", "$surfaceprop"]
+        }
+    }
+    return qcDefaults
+
+def qc_populate_typesEnum(qcDefaults):
+    enumItems = []
+    for dict in qcDefaults:
+        enumItems.append((dict,dict,f"Select if your QC is going to be: {dict}"))
+    return enumItems
+
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     # Inter-File Storage
@@ -207,6 +239,9 @@ def deltaanimtrick_armaturefilelocations():
 
 class VonData(bpy.types.PropertyGroup):
 
+
+
+    #---------------------------------------------------------------- Delta Anim Stuff
     float_deltaAnim_simmilarityThreshold : bpy.props.FloatProperty(
         name="Simmilarity Threshhold",
         description="Percentage of bones need to match the default valve biped armature in order to be valid.",
@@ -215,6 +250,57 @@ class VonData(bpy.types.PropertyGroup):
         soft_min=0.0, soft_max=100.0,
         step=1.0,
     ) # type: ignore
+
+
+
+    #---------------------------------------------------------------- QC Generator Stuff
+
+    enum_qcGen_modelType : bpy.props.EnumProperty(
+        name="QC Type",
+        description="Type of model you're making a QC for, is it a prop, character, npc?",
+        items=  qc_populate_typesEnum(qc_types())
+    ) # type: ignore
+
+    string_qcGen_outputPath : bpy.props.StringProperty(
+        name="Output Filepath",
+        description="Filepath the created QC file will output to",
+        default = str(Path(__file__).parent),
+        subtype='FILE_PATH'
+    ) # type: ignore
+
+    string_qcGen_materialPath : bpy.props.StringProperty(
+        name="Material Subfolder Filepath",
+        description="Filepath after the material's folder where the VMT files will be located.",
+        default = "",
+        subtype='FILE_PATH'
+    ) # type: ignore
+
+    bool_qcGen_scale : bpy.props.IntProperty(
+        name = "Character Scale",
+        description = "Scale of the characeter",
+        default = 1,
+        soft_min = 0,
+        soft_max = 10,
+        step = 1
+    ) # type: ignore
+
+    bool_qcGen_generateCollission : bpy.props.BoolProperty(
+        name = "Generate Collisions?",
+        description = "Should Collisions be automatically generated?",
+        default = False
+    ) # type: ignore
+
+    string_qcGen_existingCollissionCollection : bpy.props.StringProperty(
+        name="Existing Collission Collection",
+        description="Name of the existing collission mesh collection",
+        default = "",
+    ) # type: ignore
+
+
+
+
+
+
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
