@@ -1,4 +1,5 @@
-import bpy # type: ignore
+import bpy, bmesh # type: ignore
+from mathutils import Vector # type: ignore
 from . import von_deltaanimtrick
 from . import von_common
 
@@ -203,28 +204,224 @@ class VonPanel_DeltaAnimTrick_Full(bpy.types.Operator):
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 # QC Generator Script
 #-------------------------------------------------
-def qcoptions(context):
-     scene = context.scene
-     data = {
-        "modelType": scene.qc_model_type,                # PROP / CHARACTER / NPC
-        "modelName": scene.qc_model_name,                # "cratestack"
-        "outputPath": bpy.path.abspath(scene.qc_output_path),
-        "cdMaterials": scene.qc_material_path,           # e.g. "models/props/"
-        "smdPath": scene.qc_smd_path,                    # e.g. "//exports/cratestack.smd"
-        "collisionModel": scene.qc_collision_path,       # e.g. "//exports/cratestack_phys.smd"
-        "scale": scene.qc_scale,                         # numeric, e.g. 1.0
-        "bodygroup": scene.qc_bodygroup or "Body",
-        "surfaceProp": scene.qc_surfaceprop or "metal",
-        "staticProp": scene.qc_staticprop,               # bool
-        "sequenceName": scene.qc_sequence or "idle",     # for characters/NPCs
-    }
+def get_skinned_meshes(armature):
+    controlled_meshes = []
+    for obj in bpy.data.objects:
+        if obj.type == 'MESH':
+            for mod in obj.modifiers:
+                if mod.type == 'ARMATURE' and mod.object == armature:
+                    controlled_meshes.append(obj)
+                    break
+    return controlled_meshes
 
-class qcgenerator():
-    print("Running QC Generator")
+def getallvertices_highest_vertexgroups_and_vert_location(ob):
+    me = ob.data
+    vertexgroups = ob.vertex_groups
+    vgroups:dict = {}
+    index_to_name = {vg.index: vg.name for vg in vertexgroups}   
+    for vg in vertexgroups:
+        vgroups[vg.name] = []
+    for v in me.vertices:
+        if not v.groups:
+            continue
+        highestInfluence = max(v.groups, key=lambda g: g.weight)
+        group_name = index_to_name[highestInfluence.group]
+        world_co = ob.matrix_world @ v.co.copy()
+        vgroups[group_name].append(world_co)
+    for key, data in vgroups.items():
+        print(key)
+        for vector in data:
+            print(vector)
+    return vgroups
 
-    #Get location of VMT file
-    #Get all materials on object
-    #Get optionals
+
+
+def generate_collission_model_data(dictHighestVertexGroupPerVert:dict, obj):
+    dict_collission_bounds:dict = {}
+    for vGroup, data in dictHighestVertexGroupPerVert.items():
+        if not data:
+            continue
+        xCords = []
+        yCords = []
+        zCords = []
+        for v in data:
+            world_co = obj.matrix_world @ v.co.copy()
+            xCords.append(world_co.x)
+            yCords.append(world_co.y)
+            zCords.append(world_co.z)
+
+        minX, maxX = min(xCords), max(xCords)
+        minY, maxY = min(yCords), max(yCords)
+        minZ, maxZ = min(zCords), max(zCords)
+        
+        corners = {
+            "0_bottom_back_right"  : (maxX, minY, minZ),
+            "1_bottom_front_right" : (maxX, maxY, minZ),
+            "2_bottom_front_left"  : (minX, maxY, minZ),
+            "3_bottom_back_left"   : (minX, minY, minZ),
+            "4_top_back_right"     : (maxX, minY, maxZ),
+            "5_top_front_right"    : (maxX, maxY, maxZ),
+            "6_top_front_left"     : (minX, maxY, maxZ),
+            "7_top_back_left"      : (minX, minY, maxZ),
+        }
+
+        dict_collission_bounds[vGroup] = corners
+    return dict_collission_bounds
+
+def create_collision_boxes_correct(dict_collision_bounds:dict, collection_name:str="collisions", wireframe:bool=False, prefix:str = "CollisionCube"):
+    for vGroup, corners in dict_collision_bounds.items():
+        print(vGroup)
+        for vertexpos, vector in corners.items():
+            print(vertexpos)
+            print(vector)
+
+
+    collisions_col = bpy.data.collections.get(collection_name)
+    if collisions_col is None:
+        collisions_col = bpy.data.collections.new(collection_name)
+        bpy.context.scene.collection.children.link(collisions_col)
+
+    created_objs = []
+
+    for vGroup, corners in dict_collision_bounds.items():
+        verts_coords = [
+            corners["0_bottom_back_right"],  # 0
+            corners["1_bottom_front_right"],  # 1
+            corners["2_bottom_front_left"],  # 2
+            corners["3_bottom_back_left"],  # 3
+            corners["4_top_back_right"],  # 4
+            corners["5_top_front_right"],  # 5
+            corners["6_top_front_left"],  # 6
+            corners["7_top_back_left"],  # 7
+        ]
+
+        # Faces with "correct" loop ordering
+        face_indices = [
+            (0, 1, 2, 3),
+            (4, 5, 6, 7),
+            (0, 4, 5, 1),
+            (1, 5, 6, 2),
+            (2, 6, 7, 3),
+            (3, 7, 4, 0)
+        ]
+
+        # Create mesh and BMesh
+        mesh = bpy.data.meshes.new(f"collision_cube_{vGroup}")
+        bm = bmesh.new()
+        bm_verts = [bm.verts.new(co) for co in verts_coords]
+        bm.verts.ensure_lookup_table()
+
+        # Create faces and set smooth shading
+        for fi in face_indices:
+            face = bm.faces.new([bm_verts[i] for i in fi])
+            face.smooth = True
+        # Write BMesh to mesh
+        bm.to_mesh(mesh)
+        bm.free()
+
+        # Create object
+        obj = bpy.data.objects.new(f"{prefix}_{vGroup}", mesh)
+        collisions_col.objects.link(obj)
+
+        # Optional wireframe display
+        if wireframe:
+            obj.display_type = 'WIRE'
+            try:
+                obj.color = (0.0, 1.0, 0.0, 0.25)
+            except Exception:
+                pass
+
+        created_objs.append(obj)
+
+    return created_objs
+
+
+def parent_collision_cubes_to_bones(armature_obj, prefix="CollisionCube_"):
+    # Make sure this is an armature
+    if armature_obj.type != 'ARMATURE':
+        print(f"{armature_obj.name} is not an armature object.")
+        return
+
+    # Put the armature in object mode to avoid parenting issues
+    bpy.ops.object.mode_set(mode='OBJECT')
+
+    # Iterate through all objects in the scene
+    for obj in bpy.data.objects:
+        if not obj.name.startswith(prefix):
+            continue
+
+        # Extract the bone name after the prefix
+        bone_name = obj.name[len(prefix):]
+
+        # Check if the bone exists
+        if bone_name not in armature_obj.data.bones:
+            print(f"Bone '{bone_name}' not found for object '{obj.name}'")
+            continue
+
+        # Parent the cube to the armature (bone parent type)
+        obj.parent = armature_obj
+        obj.parent_type = 'BONE'
+        obj.parent_bone = bone_name
+
+        # Reset local transforms so the cube stays in place
+        obj.matrix_parent_inverse = armature_obj.matrix_world.inverted()
+
+        print(f"Parented '{obj.name}' → bone '{bone_name}'")
+
+    print("Parenting complete.")
+
+
+
+class Vonpanel_qcgenerator_prop(bpy.types.Operator):
+    bl_idname = "von.qcgenerator_prop"
+    bl_label = "Generate QC File"
+    def execute(self,context):
+        scene = context.scene
+        toolBox = scene.toolBox
+        modelname = toolBox.string_qcGen_mdlModelName
+        qc_output = toolBox.string_qcGen_outputPath
+        shouldGenCollis = toolBox.bool_qcGen_generateCollission
+        selected_armatures = [obj for obj in context.selected_objects if obj.type == 'ARMATURE']
+        print(f"SELECTED ARMATURES ============= {selected_armatures}")
+        if shouldGenCollis:
+            for armature in selected_armatures:
+                for mesh in get_skinned_meshes(armature):
+                    vertDict = getallvertices_highest_vertexgroups_and_vert_location(mesh)
+                    collisData = generate_collission_model_data(vertDict, mesh)
+                    create_collision_boxes_correct(collisData)
+        return{'FINISHED'}
+
+class Vonpanel_qcgenerator_player(bpy.types.Operator):
+    bl_idname = "von.qcgenerator_player"
+    bl_label = "Generate QC File"
+    def execute(self,context):
+        scene = context.scene
+        toolBox = scene.toolBox
+        modelname = toolBox.string_qcGen_mdlModelName
+        qc_output = toolBox.string_qcGen_outputPath
+        shouldGenCollis = toolBox.bool_qcGen_generateCollission
+        return{'FINISHED'}
+
+class Vonpanel_qcgenerator_npc(bpy.types.Operator):
+    bl_idname = "von.qcgenerator_npc"
+    bl_label = "Generate QC File"
+    def execute(self,context):
+        scene = context.scene
+        toolBox = scene.toolBox
+        modelname = toolBox.string_qcGen_mdlModelName
+        qc_output = toolBox.string_qcGen_outputPath
+        shouldGenCollis = toolBox.bool_qcGen_generateCollission
+        return{'FINISHED'}
+class Vonpanel_RefreshCollections(bpy.types.Operator):
+    bl_idname = "von.qcgenerator_refresh_collections"
+    bl_label = "Refresh Collection List"
+
+    def execute(self, context):
+        scene = context.scene
+        von_common.sync_bodygroup_boxes(scene)
+        self.report({'INFO'}, "Collections synced with scene.")
+        return {'FINISHED'}
+        
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -233,10 +430,16 @@ class qcgenerator():
 
 
 classes = (
+    #Delta Anim
     Vonpanel_DeltaAnimTrick_ImportRequiredProperties,
     VonPanel_DeltaAnimTrick_PartOne,
     VonPanel_DeltaAnimTrick_PartTwo,
-    VonPanel_DeltaAnimTrick_Full
+    VonPanel_DeltaAnimTrick_Full,
+    #QC Gen
+    Vonpanel_qcgenerator_prop,
+    Vonpanel_qcgenerator_player,
+    Vonpanel_qcgenerator_npc,
+    Vonpanel_RefreshCollections
 )
 
 

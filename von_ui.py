@@ -29,17 +29,21 @@ class QC_Generator_Main(bpy.types.Panel):
     def draw(self, context):
         scene = context.scene
         toolBox = scene.toolBox
-
+        qcData = scene.QC_PrimaryData
+        qcType = toolBox.enum_qcGen_modelType
         shouldGenColis = toolBox.bool_qcGen_generateCollission
-
         layout = self.layout
+        
         layout.label(text="QC Generator")
-
+        if qcType == "PROP":
+            layout.operator("von.qcgenerator_prop")
+        if qcType == "NPC":
+            layout.operator("von.qcgenerator_npc")
+        if qcType == "PLAYER":
+            layout.operator("von.qcgenerator_player")
 
         box = layout.box()
         box.label(text="Data Gathering:")
-
-        # Split the box horizontally into two equal halves
         split = box.split(factor=0.5)
         leftCol = split.column()
         rightCol = split.column()
@@ -52,12 +56,28 @@ class QC_Generator_Main(bpy.types.Panel):
 
         # Right column
         rightCol.label(text="Advanced Options:")
-        rightCol.prop(toolBox, "bool_qcGen_scale")
+        rightCol.prop(toolBox, "int_qcGen_scale")
         rightCol.prop(toolBox, "bool_qcGen_generateCollission")
         if not shouldGenColis:
             rightCol.prop(toolBox, "string_qcGen_existingCollissionCollection")
         else: 
-            rightCol.spacer
+            rightCol.label(text="Will Generate Collission")
+        box = layout.box()
+        box.operator("von.qcgenerator_refresh_collections", icon='FILE_REFRESH')
+        box = layout.box()
+        box.label(text="Bodygroups:")
+        box.prop(qcData, "num_boxes")
+        # Loop over each bodygroup box
+        for bg_box in qcData.bodygroup_boxes:
+            bg_ui = box.box()  # create a sub-box for each bodygroup
+            bg_ui.prop(bg_box, "name", text="Bodygroup")  # editable box name
+
+            # Loop over each collection in this bodygroup
+            for item in bg_box.collections:
+                bg_ui.prop(item, "enabled", text=item.name)
+        
+
+
 class Delta_Animations(bpy.types.Panel):
     bl_idname = "VONPANEL_PT_delta_animations"
     bl_label = "Delta Animation Trick Simple"

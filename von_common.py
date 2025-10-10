@@ -200,26 +200,25 @@ def deltaanimtrick_armaturefilelocations():
     }
     return armaturelocations
 
-
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     # QC Data Storage
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-def qc_types():
+def qc_file_types(): #Remember to add any additions to the UI as well - Otherwise they will not appear
     qcDefaults = {
         "PROP": {
             "flags": ["$staticprop"],
-            "sections": ["$modelname", "$cdmaterials", "$body", "$sequence", "$collisionmodel"]
+            "sections": ["$modelname", "$cdmaterials", "$bodygroup", "$sequence", "$collisionmodel"]
         },
         "CHARACTER": {
             "flags": [],
-            "sections": ["$modelname", "$cdmaterials", "$body", "$sequence", "$collisionmodel", "$attachment"]
+            "sections": ["$modelname", "$cdmaterials", "$bodygroup", "$sequence", "$collisionmodel", "$attachment"]
         },
         "NPC": {
             "flags": [],
-            "sections": ["$modelname", "$cdmaterials", "$body", "$sequence", "$collisionmodel", "$surfaceprop"]
+            "sections": ["$modelname", "$cdmaterials", "$bodygroup", "$sequence", "$collisionmodel", "$surfaceprop"]
         }
     }
     return qcDefaults
@@ -229,6 +228,74 @@ def qc_populate_typesEnum(qcDefaults):
     for dict in qcDefaults:
         enumItems.append((dict,dict,f"Select if your QC is going to be: {dict}"))
     return enumItems
+
+#storage for collections in scene
+class QC_BodygroupCollectionItem(bpy.types.PropertyGroup):
+    name : bpy.props.StringProperty() # type: ignore
+    enabled : bpy.props.BoolProperty(
+        name="Include", 
+        default=False
+        ) # type: ignore
+
+class QC_BodygroupBox(bpy.types.PropertyGroup):
+    name : bpy.props.StringProperty(
+        name="Bodygroup Name", 
+        default="New Bodygroup"
+        ) # type: ignore
+    collections : bpy.props.CollectionProperty(type=QC_BodygroupCollectionItem) # type: ignore
+
+class QC_PrimaryData(bpy.types.PropertyGroup):
+    num_boxes : bpy.props.IntProperty(
+        name="Number of Boxes", 
+        default=1, 
+        min=1
+        ) # type: ignore
+    bodygroup_boxes : bpy.props.CollectionProperty(type=QC_BodygroupBox) # type: ignore
+def sync_bodygroup_boxes(scene):
+    qcData = scene.QC_PrimaryData
+    existing_collections = [col.name for col in bpy.data.collections]
+
+    # Ensure enough boxes
+    while len(qcData.bodygroup_boxes) < qcData.num_boxes:
+        qcData.bodygroup_boxes.add()
+
+    while len(qcData.bodygroup_boxes) > qcData.num_boxes:
+        qcData.bodygroup_boxes.remove(len(qcData.bodygroup_boxes)-1)
+
+    # Ensure each box has all collections
+    for box in qcData.bodygroup_boxes:
+        existing_names = {item.name for item in box.collections}
+        for name in existing_collections:
+            if name not in existing_names:
+                item = box.collections.add()
+                item.name = name
+                item.enabled = False  # default
+def get_bodygroup_by_name(qcData, box_name):
+    for box in qcData.bodygroup_boxes:
+        if box.name == box_name:
+            return box
+    return None
+
+
+def QC_Get_Specific_Collection_From_Refreshed_List(collectionToGet:str = ""):
+    qcData = bpy.context.scene.QC_PrimaryData
+    enabled = False
+
+    for item in qcData.qc_collections:
+        if item.name == collectionToGet:
+            enabled = item.enabled
+            break
+    return enabled
+
+#Get submeshes of each bodygroup
+def QC_Get_SubMeshes_Of_Box():
+    retData = {}
+    qcData = bpy.context.scene.QC_PrimaryData
+    head_box = get_bodygroup_by_name(qcData, "Head")
+
+    if head_box:
+        for item in head_box.collections:
+            print(item.name, item.enabled)
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -258,7 +325,7 @@ class VonData(bpy.types.PropertyGroup):
     enum_qcGen_modelType : bpy.props.EnumProperty(
         name="QC Type",
         description="Type of model you're making a QC for, is it a prop, character, npc?",
-        items=  qc_populate_typesEnum(qc_types())
+        items=  qc_populate_typesEnum(qc_file_types())
     ) # type: ignore
 
     string_qcGen_outputPath : bpy.props.StringProperty(
@@ -275,7 +342,7 @@ class VonData(bpy.types.PropertyGroup):
         subtype='FILE_PATH'
     ) # type: ignore
 
-    bool_qcGen_scale : bpy.props.IntProperty(
+    int_qcGen_scale : bpy.props.IntProperty(
         name = "Character Scale",
         description = "Scale of the characeter",
         default = 1,
@@ -296,6 +363,12 @@ class VonData(bpy.types.PropertyGroup):
         default = "",
     ) # type: ignore
 
+    string_qcGen_mdlModelName : bpy.props.StringProperty(
+        name="Name of the compiled Model",
+        description="Final name of the compiled asset",
+        default = "",
+    ) # type: ignore
+
 
 
 
@@ -308,10 +381,17 @@ class VonData(bpy.types.PropertyGroup):
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 classes = [
-    #Random Storage Classes
-
+    #QC Classes:
+    QC_BodygroupCollectionItem,
+    QC_BodygroupBox,
+    QC_PrimaryData,
     #Pointer Property
     VonData
+]
+
+pointerproperties = [
+    VonData,
+    QC_PrimaryData
 ]
 
 def von_common_register():
@@ -319,9 +399,12 @@ def von_common_register():
     for cls in classes:
         register_class(cls)    
     bpy.types.Scene.toolBox = bpy.props.PointerProperty(type=VonData)
+    bpy.types.Scene.QC_PrimaryData = bpy.props.PointerProperty(type=QC_PrimaryData)
+
 
 def von_common_unregister():
     from bpy.utils import unregister_class # type: ignore
     for cls in classes:
         unregister_class(cls)    
     del bpy.types.Scene.toolBox
+    del bpy.types.Scene.QC_PrimaryData
