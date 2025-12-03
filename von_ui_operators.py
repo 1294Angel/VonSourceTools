@@ -204,6 +204,15 @@ class VonPanel_DeltaAnimTrick_Full(bpy.types.Operator):
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 # QC Generator Script
 #-------------------------------------------------
+
+for section in sections:
+    sectionCommand = f"${section}"
+    
+
+
+#"PROP": {
+        #    "flags": ["$staticprop"],
+        #    "sections": ["modelname", "cdmaterials", "bodygroup", "sequence", "collisionmodel"]
 def get_skinned_meshes(armature):
     controlled_meshes = []
     for obj in bpy.data.objects:
@@ -245,7 +254,7 @@ def generate_collission_model_data(dictHighestVertexGroupPerVert:dict, obj):
         yCords = []
         zCords = []
         for v in data:
-            world_co = obj.matrix_world @ v.co.copy()
+            world_co = obj.matrix_world @ v
             xCords.append(world_co.x)
             yCords.append(world_co.y)
             zCords.append(world_co.z)
@@ -382,13 +391,31 @@ class Vonpanel_qcgenerator_prop(bpy.types.Operator):
         qc_output = toolBox.string_qcGen_outputPath
         shouldGenCollis = toolBox.bool_qcGen_generateCollission
         selected_armatures = [obj for obj in context.selected_objects if obj.type == 'ARMATURE']
-        print(f"SELECTED ARMATURES ============= {selected_armatures}")
+
+        #Generate Collissions
         if shouldGenCollis:
             for armature in selected_armatures:
                 for mesh in get_skinned_meshes(armature):
                     vertDict = getallvertices_highest_vertexgroups_and_vert_location(mesh)
                     collisData = generate_collission_model_data(vertDict, mesh)
                     create_collision_boxes_correct(collisData)
+        if not shouldGenCollis:
+            collisCollection = toolBox.string_qcGen_existingCollissionCollection
+        
+        #Get QC_Type
+        qcType = toolBox.enum_qcGen_modelType
+        qcFlags = von_common.qc_file_types()
+        qcFlags = qcFlags[qcType]
+
+
+        #"PROP": {
+        #    "flags": ["$staticprop"],
+        #    "sections": ["$modelname", "$cdmaterials", "$bodygroup", "$sequence", "$collisionmodel"]
+
+        for flag, section in qcFlags:
+            populate_qc_dict_from_sections()
+
+
         return{'FINISHED'}
 
 class Vonpanel_qcgenerator_player(bpy.types.Operator):

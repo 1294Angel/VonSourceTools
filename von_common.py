@@ -297,6 +297,13 @@ def QC_Get_SubMeshes_Of_Box():
         for item in head_box.collections:
             print(item.name, item.enabled)
 
+def get_qc_data():
+    scene = context.scene
+    toolBox = scene.toolBox
+    modelname = toolBox.string_qcGen_mdlModelName
+    qc_data = {
+        "MDLName" : {toolBox.enum_qcGen_modelType}
+    }
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     # Inter-File Storage
