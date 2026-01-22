@@ -1,0 +1,78 @@
+{
+  "Flesh": {
+    "flesh": ["Flesh", "Standard flesh, soft, used for NPCs and gibs"],
+    "bloodyflesh": ["Bloody Flesh", "Flesh with blood effects"],
+    "alienflesh": ["Alien Flesh", "Exotic organic material"],
+    "armorflesh": ["Armor Flesh", "Harder flesh, some resistance"],
+    "zombieflesh": ["Zombie Flesh", "Zombie or decayed flesh"],
+    "antlion": ["Antlion", "Antlion creatures, HL2"],
+    "antlionsand": ["Antlion Sand", "Antlion underground tunnels, sandy"],
+    "antlion_eggshell": ["Antlion Eggshell", "Fragile antlion egg casing"]
+  },
+  "Metal": {
+    "metal": ["Metal", "Standard metal surface"],
+    "combine_metal": ["Combine Metal", "Combine-themed hard metal"],
+    "metalgrate": ["Metal Grate", "Open metal grating, affects footstep sounds"],
+    "metalpanel": ["Metal Panel", "Flat metal panels"],
+    "metalvehicle": ["Metal Vehicle", "Vehicle body metal"],
+    "metal_barrel": ["Metal Barrel", "Barrels and containers"],
+    "canister": ["Canister", "Metal canister"],
+    "gunship": ["Gunship", "Heavily armored metal"]
+  },
+  "Concrete_Stone_Earth": {
+    "concrete": ["Concrete", "Solid concrete"],
+    "boulder": ["Boulder", "Rock or large stone"],
+    "brick": ["Brick", "Standard brick material"],
+    "rock": ["Rock", "Natural rock"],
+    "gravel": ["Gravel", "Loose gravel"],
+    "cavern_rock": ["Cavern Rock", "Cave surfaces"]
+  },
+  "Wood_Natural": {
+    "wood": ["Wood", "General wood surfaces"],
+    "wood_box": ["Wood Box", "Wooden crates / boxes"],
+    "wood_crate": ["Wood Crate", "Larger wooden crates"],
+    "wood_panel": ["Wood Panel", "Wood panels / walls"],
+    "wood_furniture": ["Wood Furniture", "Furniture"],
+    "foliage": ["Foliage", "Plants, leaves, natural foliage"]
+  },
+  "Glass_Transparent": {
+    "glass": ["Glass", "Regular glass"],
+    "glassbottle": ["Glass Bottle", "Bottles or thin glass"],
+    "combine_glass": ["Combine Glass", "Stronger glass"]
+  },
+  "Plastic_Rubber_Misc": {
+    "plastic": ["Plastic", "Generic plastic surfaces"],
+    "plastic_barrel": ["Plastic Barrel", "Plastic barrels"],
+    "plastic_barrel_buoyant": ["Plastic Barrel (Buoyant)", "Floats in water"],
+    "plastic_box": ["Plastic Box", "Plastic crates or containers"],
+    "rubber": ["Rubber", "Rubber surfaces"],
+    "rubbertire": ["Rubber Tire", "Standard tires"],
+    "slidingrubbertire": ["Sliding Rubber Tire", "Tires with slip behavior"],
+    "jeeptire": ["Jeep Tire", "Vehicle tires"]
+  },
+  "Friction_Physics": {
+    "friction_00": ["Friction 0.0", "Low friction"],
+    "friction_10": ["Friction 0.1", "Slightly higher friction"],
+    "friction_25": ["Friction 0.25", "Medium friction"],
+    "frictionm_00": ["Metal Friction 0.0", "Metal-like, low friction"],
+    "frictionm_10": ["Metal Friction 0.1", "Metal-like, medium friction"],
+    "frictionm_25": ["Metal Friction 0.25", "Metal-like, higher friction"]
+  },
+  "GMod_PHX": {
+    "gmod_bouncy": ["GMod Bouncy", "Highly bouncy physics object"],
+    "gmod_ice": ["GMod Ice", "Slippery ice"],
+    "gmod_silent": ["GMod Silent", "No impact sounds"],
+    "gm_ps_egg": ["Egg", "Egg physics object"],
+    "gm_ps_metaltire": ["Metal Tire", "Metal tire behavior"],
+    "gm_ps_soccerball": ["Soccerball", "Ball physics"],
+    "gm_torpedo": ["Torpedo", "Torpedo physics"],
+    "phx_explosiveball": ["Explosive Ball", "PHX explosive prop"],
+    "phx_flakshell": ["Flak Shell", "PHX projectile"],
+    "phx_rubbertire": ["PHX Rubber Tire", "Rubber tire"],
+    "phx_rubbertire2": ["PHX Rubber Tire 2", "Rubber tire variant"],
+    "phx_tire_normal": ["PHX Normal Tire", "Standard tire physics"],
+    "phx_ww2bomb": ["PHX WW2 Bomb", "Physics bomb"],
+    "plastic_barrel_verybuoyant": ["Plastic Barrel (Very Buoyant)", "Highly buoyant barrel"],
+    "hay": ["Hay", "Hay bales or similar"]
+  }
+}

@@ -1,212 +1,30 @@
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    # Import Bullshit
-
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-import bpy # type: ignore
+import bpy,json# type: ignore
 from pathlib import Path
+##----------------------------------------------------------------------
+# Harded Coded File Locs
+#----------------------------------------------------------------------
+default_surfaceprop_path = str(Path(__file__).parent / "storeditems" / "qcgenerator" / "templates" / "surfaceprops.json")
 
 
+#----------------------------------------------------------------------
+# Commonly Used Functions
+#----------------------------------------------------------------------
 
+def load_json_dict_to_var(relativePath: str, jsonFileName) -> dict:
+    addonDir = Path(__file__).parent
+    jsonPath = addonDir / relativePath / jsonFileName
 
-
-
-
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    # Common Functions
-
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def reselect_all(objectsToSelect:list, targetobj):
-    bpy.ops.object.select_all(action='DESELECT')
-    for o in objectsToSelect:
-        o.select_set(True)
-    bpy.context.view_layer.objects.active = targetobj
+    if not jsonPath.isfile():
+        raise FileNotFoundError(f"Json Dict not found: {jsonPath}")
+    with jsonPath.open("r", encoding="utf-8") as f:
+        data = json.load(f)
     
+    return data
+#----------------------------------------------------------------------
+# QC Data Updates
+#----------------------------------------------------------------------
 
-def move_object_to_collection(objName:str, targetCollection:str):
-    if targetCollection in bpy.data.collections:
-        targetCollection = bpy.data.collections[targetCollection]
-    else:
-        targetCollection = bpy.data.collections.new(targetCollection)
-        bpy.context.scene.collection.children.link(targetCollection)
-
-    obj = bpy.data.objects.get(objName)
-
-    if obj:
-        for coll in obj.users_collection:
-            coll.objects.unlink(obj)
-        
-        targetCollection.objects.link(obj)
-    else:
-            print(f"Object {objName} not found")
-
-def object_exists(name: str) -> bool:
-    doesExist = False
-    obj = bpy.data.objects.get(name)
-    if obj:
-        doesExist = True
-    return doesExist
-
-def importitemfromdict(name:str, collection:str, targetdict:dict):
-    filepath: str = ""
-    try:
-        bpy.ops.import_scene.fbx(filepath=str(targetdict[name]))
-    except:
-        raise ImportError(f"Object {name} not found")
-    move_object_to_collection(name, collection)
-
-def set_object_mode(obj, mode:str="OBJECT"):
-        bpy.context.view_layer.objects.active = obj
-        obj.select_set(True)
-        bpy.ops.object.mode_set(mode=mode)
-
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    # Delta Anim Data Storage
-
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-def deltaanimtrick_valvebipeds_1():
-    valvebipeds = [
-    'ValveBiped.Bip01_Pelvis',
-    'ValveBiped.Bip01_Spine',
-    'ValveBiped.Bip01_Spine1',
-    'ValveBiped.Bip01_Spine2',
-    'ValveBiped.Bip01_Spine4',
-    'ValveBiped.Bip01_Neck1',
-    'ValveBiped.Bip01_Head1',
-    'ValveBiped.Bip01_R_Clavicle',
-    'ValveBiped.Bip01_R_UpperArm',
-    'ValveBiped.Bip01_R_Forearm',
-    'ValveBiped.Bip01_R_Hand',
-    'ValveBiped.Bip01_R_Finger0',
-    'ValveBiped.Bip01_R_Finger01',
-    'ValveBiped.Bip01_R_Finger02',
-    'ValveBiped.Bip01_R_Finger1',
-    'ValveBiped.Bip01_R_Finger11',
-    'ValveBiped.Bip01_R_Finger12',
-    'ValveBiped.Bip01_R_Finger2',
-    'ValveBiped.Bip01_R_Finger21',
-    'ValveBiped.Bip01_R_Finger22',
-    'ValveBiped.Bip01_R_Finger3',
-    'ValveBiped.Bip01_R_Finger31',
-    'ValveBiped.Bip01_R_Finger32',
-    'ValveBiped.Bip01_R_Finger4',
-    'ValveBiped.Bip01_R_Finger41',
-    'ValveBiped.Bip01_R_Finger42',
-    'ValveBiped.Bip01_L_Clavicle',
-    'ValveBiped.Bip01_L_UpperArm',
-    'ValveBiped.Bip01_L_Forearm',
-    'ValveBiped.Bip01_L_Hand',
-    'ValveBiped.Bip01_L_Finger0',
-    'ValveBiped.Bip01_L_Finger01',
-    'ValveBiped.Bip01_L_Finger02',
-    'ValveBiped.Bip01_L_Finger1',
-    'ValveBiped.Bip01_L_Finger11',
-    'ValveBiped.Bip01_L_Finger12',
-    'ValveBiped.Bip01_L_Finger2',
-    'ValveBiped.Bip01_L_Finger21',
-    'ValveBiped.Bip01_L_Finger22',
-    'ValveBiped.Bip01_L_Finger3',
-    'ValveBiped.Bip01_L_Finger31',
-    'ValveBiped.Bip01_L_Finger32',
-    'ValveBiped.Bip01_L_Finger4',
-    'ValveBiped.Bip01_L_Finger41',
-    'ValveBiped.Bip01_L_Finger42',
-    'ValveBiped.Bip01_R_Thigh',
-    'ValveBiped.Bip01_R_Calf',
-    'ValveBiped.Bip01_R_Foot',
-    'ValveBiped.Bip01_R_Toe0',
-    'ValveBiped.Bip01_L_Thigh',
-    'ValveBiped.Bip01_L_Calf',
-    'ValveBiped.Bip01_L_Foot',
-    'ValveBiped.Bip01_L_Toe0',
-    ]
-
-    return valvebipeds
-
-
-def deltaanimtrick_valvebipeds_2():
-    valvebipeds2 = [
-    'ValveBiped.Bip01_L_Thigh',
-    'ValveBiped.Bip01_L_Calf',
-    'ValveBiped.Bip01_L_Calf',
-    'ValveBiped.Bip01_L_Foot',
-    'ValveBiped.Bip01_R_Thigh',
-    'ValveBiped.Bip01_R_Calf',
-    'ValveBiped.Bip01_R_Calf',
-    'ValveBiped.Bip01_R_Foot',
-    'ValveBiped.Bip01_L_UpperArm',
-    'ValveBiped.Bip01_L_Forearm',
-    'ValveBiped.Bip01_L_Forearm',
-    'ValveBiped.Bip01_L_Hand',
-    'ValveBiped.Bip01_R_UpperArm',
-    'ValveBiped.Bip01_R_Forearm',
-    'ValveBiped.Bip01_R_Forearm',
-    'ValveBiped.Bip01_R_Hand',
-    'ValveBiped.Bip01_L_Finger0',
-    'ValveBiped.Bip01_L_Finger01',
-    'ValveBiped.Bip01_L_Finger01',
-    'ValveBiped.Bip01_L_Finger02',
-    'ValveBiped.Bip01_L_Finger1',
-    'ValveBiped.Bip01_L_Finger11',
-    'ValveBiped.Bip01_L_Finger11',
-    'ValveBiped.Bip01_L_Finger12',
-    'ValveBiped.Bip01_L_Finger2',
-    'ValveBiped.Bip01_L_Finger21',
-    'ValveBiped.Bip01_L_Finger21',
-    'ValveBiped.Bip01_L_Finger22',
-    'ValveBiped.Bip01_L_Finger3',
-    'ValveBiped.Bip01_L_Finger31',
-    'ValveBiped.Bip01_L_Finger31',
-    'ValveBiped.Bip01_L_Finger32',
-    'ValveBiped.Bip01_L_Finger4',
-    'ValveBiped.Bip01_L_Finger41',
-    'ValveBiped.Bip01_L_Finger41',
-    'ValveBiped.Bip01_L_Finger42',
-    'ValveBiped.Bip01_R_Finger0',
-    'ValveBiped.Bip01_R_Finger01',
-    'ValveBiped.Bip01_R_Finger01',
-    'ValveBiped.Bip01_R_Finger02',
-    'ValveBiped.Bip01_R_Finger1',
-    'ValveBiped.Bip01_R_Finger11',
-    'ValveBiped.Bip01_R_Finger11',
-    'ValveBiped.Bip01_R_Finger12',
-    'ValveBiped.Bip01_R_Finger2',
-    'ValveBiped.Bip01_R_Finger21',
-    'ValveBiped.Bip01_R_Finger21',
-    'ValveBiped.Bip01_R_Finger22',
-    'ValveBiped.Bip01_R_Finger3',
-    'ValveBiped.Bip01_R_Finger31',
-    'ValveBiped.Bip01_R_Finger31',
-    'ValveBiped.Bip01_R_Finger32',
-    'ValveBiped.Bip01_R_Finger4',
-    'ValveBiped.Bip01_R_Finger41',
-    'ValveBiped.Bip01_R_Finger41',
-    'ValveBiped.Bip01_R_Finger42',
-    ]
-
-    return valvebipeds2
-
-def deltaanimtrick_armaturefilelocations():
-    print("---------Running Delta Anim Armature File Locations Definition ----------")
-    base_dir = Path(__file__).parent / "storeditems" / "deltaanimtrick"
-    armaturelocations = {
-        "proportions": base_dir / "proportions.fbx",
-        "reference_female": base_dir / "reference_female.fbx",
-        "reference_male": base_dir / "reference_male.fbx"
-    }
-    return armaturelocations
-
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    # QC Data Storage
-
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-def qc_file_types(): #Remember to add any additions to the UI as well - Otherwise they will not appear
+def qc_file_types():
     qcDefaults = {
         "PROP": {
             "flags": ["$staticprop"],
@@ -229,37 +47,41 @@ def qc_populate_typesEnum(qcDefaults):
         enumItems.append((dict,dict,f"Select if your QC is going to be: {dict}"))
     return enumItems
 
-#--------------------------------------
+#----------------------------------------------------------------------
 # VMT Filepath Storage
-#--------------------------------------
+#----------------------------------------------------------------------
+
 class VMT_FilePathItem(bpy.types.PropertyGroup):
-    filepath : bpy.props.StringProperty(
+    filepath: bpy.props.StringProperty(
         name="File Path",
         subtype='FILE_PATH'
     ) # type: ignore
 
-#--------------------------------------
-# Bodygroups
-#--------------------------------------
+#----------------------------------------------------------------------
+# Bodygroup PropertyGroups
+#----------------------------------------------------------------------
+
 class QC_BodygroupCollectionItem(bpy.types.PropertyGroup):
-    name : bpy.props.StringProperty() # type: ignore
-    enabled : bpy.props.BoolProperty(
-        name="Include", 
+    name: bpy.props.StringProperty() # type: ignore
+    enabled: bpy.props.BoolProperty(
+        name="Include",
         default=False
     ) # type: ignore
 
 class QC_BodygroupBox(bpy.types.PropertyGroup):
-    name : bpy.props.StringProperty(
-        name="Bodygroup Name", 
+    name: bpy.props.StringProperty(
+        name="Bodygroup Name",
         default="New Bodygroup"
     ) # type: ignore
-    collections : bpy.props.CollectionProperty(type=QC_BodygroupCollectionItem) # type: ignore
+    collections: bpy.props.CollectionProperty(type=QC_BodygroupCollectionItem) # type: ignore
 
-#--------------------------------------
+#----------------------------------------------------------------------
 # Primary Data
-#--------------------------------------
+#----------------------------------------------------------------------
+
 def update_vmt_files(self, context):
-    primary_data = context.scene.qc_primary_data
+    """Automatically sync vmt_filepaths collection to num_vmt_files."""
+    primary_data = context.scene.QC_PrimaryData
     current_count = len(primary_data.vmt_filepaths)
     target_count = primary_data.num_vmt_files
 
@@ -272,94 +94,79 @@ def update_vmt_files(self, context):
 
 class QC_PrimaryData(bpy.types.PropertyGroup):
     # Bodygroup boxes
-    num_boxes : bpy.props.IntProperty(
-        name="Number of Bodygroups", 
-        default=0, 
+    num_boxes: bpy.props.IntProperty(
+        name="Number of Bodygroups",
+        default=0,
         min=0
     ) # type: ignore
-    bodygroup_boxes : bpy.props.CollectionProperty(type=QC_BodygroupBox) # type: ignore
+    bodygroup_boxes: bpy.props.CollectionProperty(type=QC_BodygroupBox) # type: ignore
 
-    # VMT files
-    num_vmt_files : bpy.props.IntProperty(
+    num_vmt_files: bpy.props.IntProperty(
         name="Number of VMTs",
         default=0,
         min=0,
         update=update_vmt_files
     ) # type: ignore
-    vmt_filepaths : bpy.props.CollectionProperty(type=VMT_FilePathItem) # type: ignore
+    vmt_filepaths: bpy.props.CollectionProperty(type=VMT_FilePathItem) # type: ignore
 
 
 
-
-
-def sync_bodygroup_boxes(scene):
-    qcData = scene.QC_PrimaryData
-    existing_collections = [col.name for col in bpy.data.collections]
-
-    while len(qcData.bodygroup_boxes) < qcData.num_boxes:
-        qcData.bodygroup_boxes.add()
-
-    while len(qcData.bodygroup_boxes) > qcData.num_boxes:
-        qcData.bodygroup_boxes.remove(len(qcData.bodygroup_boxes)-1)
-
-    for box in qcData.bodygroup_boxes:
-        existing_names = {item.name for item in box.collections}
-        for name in existing_collections:
-            if name not in existing_names:
-                item = box.collections.add()
-                item.name = name
-                item.enabled = False  # default
-def get_bodygroup_by_name(qcData, box_name):
-    for box in qcData.bodygroup_boxes:
-        if box.name == box_name:
-            return box
-    return None
-
-
-def QC_Get_Specific_Collection_From_Refreshed_List(collectionToGet:str = ""):
-    qcData = bpy.context.scene.QC_PrimaryData
-    enabled = False
-
-    for item in qcData.qc_collections:
-        if item.name == collectionToGet:
-            enabled = item.enabled
-            break
-    return enabled
-
-#Get submeshes of each bodygroup
-def QC_Get_SubMeshes_Of_Box():
-    retData = {}
-    qcData = bpy.context.scene.QC_PrimaryData
-    head_box = get_bodygroup_by_name(qcData, "Head")
-
-    if head_box:
-        for item in head_box.collections:
-            print(item.name, item.enabled)
-
-#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    # Inter-File Storage
-
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+#----------------------------------------------------------------------
+# Toolbox / VonData Pointer
+#----------------------------------------------------------------------
 
 class VonData(bpy.types.PropertyGroup):
-
-
-
-    #---------------------------------------------------------------- Delta Anim Stuff
-    float_deltaAnim_simmilarityThreshold : bpy.props.FloatProperty(
-        name="Simmilarity Threshhold",
-        description="Percentage of bones need to match the default valve biped armature in order to be valid.",
+    float_deltaAnim_simmilarityThreshold: bpy.props.FloatProperty(
+        name="Simmilarity Threshold",
+        description="Percentage of bones that must match the default armature",
         default=90.0,
-        min=0.0, max=100.0,
-        soft_min=0.0, soft_max=100.0,
-        step=1.0,
+        min=0.0,
+        max=100.0
+    ) # type: ignore
+
+     #---------------------------------------------------------------- Surface Prop
+    string_surfacepropfilelocation: bpy.props.StringProperty(
+        name="SurfacePropFileLoc",
+        description="This is where the surfaceprop file location is....",
+        default=str(Path(__file__).parent / "storeditems" / "qcgenerator" / "templates" / "surfaceprops.json"),
+        subtype='FILE_PATH',
+    ) # type: ignore
+
+    def surfaceprop_category_items(self, context):
+        json_path = Path(self.string_surfacepropfilelocation)
+        if not json_path.is_file():
+            return []
+        with json_path.open("r", encoding="utf-8") as f:
+            surfaceprops_data = json.load(f)
+        return [(cat, cat.replace("_", " "), f"Select surfaceprop category: {cat}") 
+                for cat in surfaceprops_data.keys()]
+
+    def surfaceprop_item_items(self, context):
+        json_path = Path(self.string_surfacepropfilelocation)
+        if not json_path.is_file():
+            return []
+        with json_path.open("r", encoding="utf-8") as f:
+            surfaceprops_data = json.load(f)
+        cat = getattr(self, "enum_surfaceprop_category", None)
+        if not cat or cat not in surfaceprops_data:
+            return []
+        return [(key, val[0], val[1]) for key, val in surfaceprops_data[cat].items()]
+
+
+    enum_surfaceprop_category: bpy.props.EnumProperty(
+        name="SurfaceProp Category",
+        description="Select surfaceprop category",
+        items=surfaceprop_category_items
+    ) # type: ignore
+
+    enum_surfaceprop_item: bpy.props.EnumProperty(
+        name="SurfaceProp",
+        description="Select surfaceprop item within category",
+        items=surfaceprop_item_items
     ) # type: ignore
 
 
-
-    #---------------------------------------------------------------- QC Generator Stuff (SIMPLE)
+     #---------------------------------------------------------------- QC Generator Stuff (SIMPLE)
 
     enum_qcGen_charAnimIncludes : bpy.props.EnumProperty(
         name="Include Char Anims?",
@@ -428,26 +235,55 @@ class VonData(bpy.types.PropertyGroup):
     ) # type: ignore
 
 
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    # Register Functions
+#----------------------------------------------------------------------
+# Bodygroup Sync Helper
+#----------------------------------------------------------------------
 
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+def sync_bodygroup_boxes(scene):
+    """Ensure the bodygroup_boxes collection matches num_boxes."""
+    qcData = scene.QC_PrimaryData
+    existing_collections = [col.name for col in bpy.data.collections]
+
+    while len(qcData.bodygroup_boxes) < qcData.num_boxes:
+        qcData.bodygroup_boxes.add()
+
+    while len(qcData.bodygroup_boxes) > qcData.num_boxes:
+        qcData.bodygroup_boxes.remove(len(qcData.bodygroup_boxes)-1)
+
+    for box in qcData.bodygroup_boxes:
+        existing_names = {item.name for item in box.collections}
+        for name in existing_collections:
+            if name not in existing_names:
+                item = box.collections.add()
+                item.name = name
+                item.enabled = False
+
+def get_bodygroup_by_name(qcData, box_name):
+    for box in qcData.bodygroup_boxes:
+        if box.name == box_name:
+            return box
+    return None
+
+
+
+#----------------------------------------------------------------------
+# Registration
+#----------------------------------------------------------------------
+
 classes = [
-    #QC Classes:
+    # Bodygroup
     QC_BodygroupCollectionItem,
     QC_BodygroupBox,
-    QC_PrimaryData,
-    #VMT Classes
-    VMT_FilePathItem,
-    #Pointer Property
-    VonData,
-    
-]
 
-pointerproperties = [
+    # VMT
+    VMT_FilePathItem,
+
+    # Primary Data
+    QC_PrimaryData,
+
+    # Toolbox
     VonData,
-    QC_PrimaryData
 ]
 
 def von_common_register():
@@ -457,7 +293,6 @@ def von_common_register():
     # Pointer properties on the scene
     bpy.types.Scene.QC_PrimaryData = bpy.props.PointerProperty(type=QC_PrimaryData)
     bpy.types.Scene.toolBox = bpy.props.PointerProperty(type=VonData)
-
 
 def von_common_unregister():
     del bpy.types.Scene.QC_PrimaryData

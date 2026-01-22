@@ -1,15 +1,15 @@
 import json, bpy # type: ignore
 from pathlib import Path
-
-# ---------------------------------------------
-# dispatch functions
-# ---------------------------------------------
-
-
+from .von_common import load_json_dict_to_var
 
 # ---------------------------------------------
 # typical functions
 # ---------------------------------------------
+def get_all_vmt_filepaths()->list:
+    scene = bpy.context.scene
+    qc_data = scene.QC_PrimaryData
+    filepaths = [item.filepath for item in qc_data.vmt_filepaths if item.filepath]
+    return filepaths
 
 def gather_bodygroup_data():
     qcPrimaryData = bpy.context.scene.QC_PrimaryData
@@ -27,16 +27,7 @@ def gather_bodygroup_data():
 
     return bodygroups # returns dict {"Bodygroup Name" : ["Collection Name""CollectioName" ect]}
 
-def load_json_dict_to_var(relativePath: str, jsonFileName) -> dict:
-    addonDir = Path(__file__).parent
-    jsonPath = addonDir / relativePath / jsonFileName
 
-    if not jsonPath.isfile():
-        raise FileNotFoundError(f"Json Dict not found: {jsonPath}")
-    with jsonPath.open("r", encoding="utf-8") as f:
-        data = json.load(f)
-    
-    return data
 
 def make_dictcommand_into_qccommand(inputCommand):
     outputcommand = f"${inputCommand}"

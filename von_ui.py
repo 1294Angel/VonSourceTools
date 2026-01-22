@@ -30,7 +30,6 @@ class QC_Generator_Main(bpy.types.Panel):
     def draw(self, context):
         scene = context.scene
         toolBox = scene.toolBox
-        
         qcType = toolBox.enum_qcGen_modelType
         shouldGenColis = toolBox.bool_qcGen_generateCollission
         layout = self.layout
@@ -48,7 +47,6 @@ class QC_Generator_Main(bpy.types.Panel):
         leftCol.label(text="Main Settings:")
         leftCol.prop(toolBox, "enum_qcGen_modelType")
         leftCol.prop(toolBox, "string_qcGen_outputPath")
-        leftCol.prop(toolBox, "string_qcGen_materialPath")
 
         # Right column
         rightCol.label(text="Advanced Options:")
@@ -58,6 +56,11 @@ class QC_Generator_Main(bpy.types.Panel):
             rightCol.prop(toolBox, "string_qcGen_existingCollissionCollection")
         else: 
             rightCol.label(text="Will Generate Collission")
+        
+        box = layout.box()
+        box.label(text="SurfaceProp:")
+        box.prop(toolBox, "enum_surfaceprop_category")
+        box.prop(toolBox, "enum_surfaceprop_item")
         
         
     
@@ -171,12 +174,10 @@ class QC_Generator_Bodygroups(bpy.types.Panel):
         box = layout.box()
         box.label(text="Bodygroups:")
         box.prop(qcData, "num_boxes")
-        # Loop over each bodygroup box
         for bg_box in qcData.bodygroup_boxes:
-            bg_ui = box.box()  # create a sub-box for each bodygroup
-            bg_ui.prop(bg_box, "name", text="Bodygroup")  # editable box name
+            bg_ui = box.box()
+            bg_ui.prop(bg_box, "name", text="Bodygroup")
 
-            # Loop over each collection in this bodygroup
             for item in bg_box.collections:
                 bg_ui.prop(item, "enabled", text=item.name)
 
@@ -198,19 +199,12 @@ class QC_Generator_MaterialFolders(bpy.types.Panel):
         layout.label(text="Bodygroup Material Folder Locations")
 
         box = layout.box()
-        box.operator("von.qcgenerator_refresh_collections", icon='FILE_REFRESH')
-        box = layout.box()
-        box.label(text="Bodygroups:")
-        box.prop(qcData, "num_boxes")
-        # Loop over each bodygroup box
-        for bg_box in qcData.num_vmt_files:
-            bg_ui = box.box()  # create a sub-box for each bodygroup
-            bg_ui.prop(bg_box, "name", text="Bodygroup")  # editable box name
+        box.label(text="VMT Filepaths:")
+        box.prop(qcData, "num_vmt_files")
 
-            # Loop over each collection in this bodygroup
-            for item in bg_box.collections:
-                bg_ui.prop(item, "enabled", text=item.name)
-
+        # Loop over each VMT file
+        for i, vmt_item in enumerate(qcData.vmt_filepaths):
+            box.prop(vmt_item, "filepath", text=f"VMT {i+1}")
 class QC_Generator_Advanced(bpy.types.Panel):
     bl_idname = "VONPANEL_PT_QC_Generator_Advanced"
     bl_label = "QC Generator Advanced"
