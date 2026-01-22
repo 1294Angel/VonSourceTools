@@ -229,40 +229,79 @@ def qc_populate_typesEnum(qcDefaults):
         enumItems.append((dict,dict,f"Select if your QC is going to be: {dict}"))
     return enumItems
 
-#storage for collections in scene
+#--------------------------------------
+# VMT Filepath Storage
+#--------------------------------------
+class VMT_FilePathItem(bpy.types.PropertyGroup):
+    filepath : bpy.props.StringProperty(
+        name="File Path",
+        subtype='FILE_PATH'
+    ) # type: ignore
+
+#--------------------------------------
+# Bodygroups
+#--------------------------------------
 class QC_BodygroupCollectionItem(bpy.types.PropertyGroup):
     name : bpy.props.StringProperty() # type: ignore
     enabled : bpy.props.BoolProperty(
         name="Include", 
         default=False
-        ) # type: ignore
+    ) # type: ignore
 
 class QC_BodygroupBox(bpy.types.PropertyGroup):
     name : bpy.props.StringProperty(
         name="Bodygroup Name", 
         default="New Bodygroup"
-        ) # type: ignore
+    ) # type: ignore
     collections : bpy.props.CollectionProperty(type=QC_BodygroupCollectionItem) # type: ignore
 
+#--------------------------------------
+# Primary Data
+#--------------------------------------
+def update_vmt_files(self, context):
+    primary_data = context.scene.qc_primary_data
+    current_count = len(primary_data.vmt_filepaths)
+    target_count = primary_data.num_vmt_files
+
+    if target_count > current_count:
+        for _ in range(target_count - current_count):
+            primary_data.vmt_filepaths.add()
+    elif target_count < current_count:
+        for _ in range(current_count - target_count):
+            primary_data.vmt_filepaths.remove(len(primary_data.vmt_filepaths)-1)
+
 class QC_PrimaryData(bpy.types.PropertyGroup):
+    # Bodygroup boxes
     num_boxes : bpy.props.IntProperty(
-        name="Number of Boxes", 
-        default=1, 
-        min=1
-        ) # type: ignore
+        name="Number of Bodygroups", 
+        default=0, 
+        min=0
+    ) # type: ignore
     bodygroup_boxes : bpy.props.CollectionProperty(type=QC_BodygroupBox) # type: ignore
+
+    # VMT files
+    num_vmt_files : bpy.props.IntProperty(
+        name="Number of VMTs",
+        default=0,
+        min=0,
+        update=update_vmt_files
+    ) # type: ignore
+    vmt_filepaths : bpy.props.CollectionProperty(type=VMT_FilePathItem) # type: ignore
+
+
+
+
+
 def sync_bodygroup_boxes(scene):
     qcData = scene.QC_PrimaryData
     existing_collections = [col.name for col in bpy.data.collections]
 
-    # Ensure enough boxes
     while len(qcData.bodygroup_boxes) < qcData.num_boxes:
         qcData.bodygroup_boxes.add()
 
     while len(qcData.bodygroup_boxes) > qcData.num_boxes:
         qcData.bodygroup_boxes.remove(len(qcData.bodygroup_boxes)-1)
 
-    # Ensure each box has all collections
     for box in qcData.bodygroup_boxes:
         existing_names = {item.name for item in box.collections}
         for name in existing_collections:
@@ -297,14 +336,7 @@ def QC_Get_SubMeshes_Of_Box():
         for item in head_box.collections:
             print(item.name, item.enabled)
 
-def get_qc_data():
-    scene = context.scene
-    toolBox = scene.toolBox
-    modelname = toolBox.string_qcGen_mdlModelName
-    qc_data = {
-        "MDLName" : {toolBox.enum_qcGen_modelType}
-    }
-#------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     # Inter-File Storage
 
@@ -327,7 +359,14 @@ class VonData(bpy.types.PropertyGroup):
 
 
 
-    #---------------------------------------------------------------- QC Generator Stuff
+    #---------------------------------------------------------------- QC Generator Stuff (SIMPLE)
+
+    enum_qcGen_charAnimIncludes : bpy.props.EnumProperty(
+        name="Include Char Anims?",
+        description="For character and NPC models, do you want to include base animations, and if so what type?",
+        items = [("None","None","Do not include existing animations. Best for use if you are not using the default valve.biped armature"),("f_anm.mdl", "Female", "Include the base female animations"), ("m_anm.mdl", "Male", "Include the base male animations"),("z_anm.mdl","Zombie","Include the base zombie animations")],
+        default = "None"
+    ) # type: ignore
 
     enum_qcGen_modelType : bpy.props.EnumProperty(
         name="QC Type",
@@ -349,15 +388,6 @@ class VonData(bpy.types.PropertyGroup):
         subtype='FILE_PATH'
     ) # type: ignore
 
-    int_qcGen_scale : bpy.props.IntProperty(
-        name = "Character Scale",
-        description = "Scale of the characeter",
-        default = 1,
-        soft_min = 0,
-        soft_max = 10,
-        step = 1
-    ) # type: ignore
-
     bool_qcGen_generateCollission : bpy.props.BoolProperty(
         name = "Generate Collisions?",
         description = "Should Collisions be automatically generated?",
@@ -376,10 +406,26 @@ class VonData(bpy.types.PropertyGroup):
         default = "",
     ) # type: ignore
 
+    # Smd Batch Exporter
+
+    export_folder: bpy.props.StringProperty(
+        name="Export Folder",
+        description="Folder to save exported SMDs",
+        default="//",
+        subtype='DIR_PATH'
+    ) # type: ignore
+
+#---------------------------------------------------------------- QC Generator ADVANCED (SIMPLE)
 
 
-
-
+    int_qcGen_scale : bpy.props.IntProperty(
+        name = "Character Scale",
+        description = "Scale of the characeter",
+        default = 1,
+        soft_min = 0,
+        soft_max = 10,
+        step = 1
+    ) # type: ignore
 
 
 #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -392,8 +438,11 @@ classes = [
     QC_BodygroupCollectionItem,
     QC_BodygroupBox,
     QC_PrimaryData,
+    #VMT Classes
+    VMT_FilePathItem,
     #Pointer Property
-    VonData
+    VonData,
+    
 ]
 
 pointerproperties = [
@@ -402,16 +451,17 @@ pointerproperties = [
 ]
 
 def von_common_register():
-    from bpy.utils import register_class # type: ignore
     for cls in classes:
-        register_class(cls)    
-    bpy.types.Scene.toolBox = bpy.props.PointerProperty(type=VonData)
+        bpy.utils.register_class(cls)
+
+    # Pointer properties on the scene
     bpy.types.Scene.QC_PrimaryData = bpy.props.PointerProperty(type=QC_PrimaryData)
+    bpy.types.Scene.toolBox = bpy.props.PointerProperty(type=VonData)
 
 
 def von_common_unregister():
-    from bpy.utils import unregister_class # type: ignore
-    for cls in classes:
-        unregister_class(cls)    
-    del bpy.types.Scene.toolBox
     del bpy.types.Scene.QC_PrimaryData
+    del bpy.types.Scene.toolBox
+
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)

@@ -1,8 +1,9 @@
-import bpy, bmesh # type: ignore
+import json, bpy, bmesh, os # type: ignore
 from mathutils import Vector # type: ignore
+from pathlib import Path # type: ignore
 from . import von_deltaanimtrick
 from . import von_common
-
+from . import von_qcbuilder
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 # Delta Anim Trick
 #-------------------------------------------------
@@ -205,14 +206,37 @@ class VonPanel_DeltaAnimTrick_Full(bpy.types.Operator):
 # QC Generator Script
 #-------------------------------------------------
 
-for section in sections:
-    sectionCommand = f"${section}"
-    
-
-
 #"PROP": {
         #    "flags": ["$staticprop"],
         #    "sections": ["modelname", "cdmaterials", "bodygroup", "sequence", "collisionmodel"]
+
+
+def get_qc_templates_dir() -> Path:
+    addon_dir = Path(__file__).parent
+    return addon_dir / "qcgenerator" / "templates"
+
+def load_qc_section_order() -> dict:
+    templates_dir = get_qc_templates_dir()
+    json_file = templates_dir / "qc_section_order.json"
+
+    if not json_file.exists():
+        raise FileNotFoundError(f"QC section order JSON not found: {json_file}")
+
+    with json_file.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+def load_qc_template(template_name: str) -> str:
+    templates_dir = get_qc_templates_dir() / "commands"
+    template_file = templates_dir / f"{template_name}.txt"
+
+    if not template_file.exists():
+        raise FileNotFoundError(f"QC template not found: {template_file}")
+
+    return template_file.read_text(encoding="utf-8")
+
+
+
+#-- generate Collis
 def get_skinned_meshes(armature):
     controlled_meshes = []
     for obj in bpy.data.objects:
@@ -379,9 +403,23 @@ def parent_collision_cubes_to_bones(armature_obj, prefix="CollisionCube_"):
 
     print("Parenting complete.")
 
+def create_collission_boxes(armaturelist):
+    for armature in armaturelist:
+            skinnedMeshes = get_skinned_meshes(armature)
+            for mesh in skinnedMeshes:
+                highestGroups = getallvertices_highest_vertexgroups_and_vert_location(mesh)
+                collisionBounds = generate_collission_model_data(highestGroups, mesh)
+                create_collision_boxes_correct(collisionBounds)
+                parent_collision_cubes_to_bones(armature)
 
 
-class Vonpanel_qcgenerator_prop(bpy.types.Operator):
+
+
+
+#-- Operators
+
+
+"""class Vonpanel_qcgenerator_prop(bpy.types.Operator):
     bl_idname = "von.qcgenerator_prop"
     bl_label = "Generate QC File"
     def execute(self,context):
@@ -402,10 +440,6 @@ class Vonpanel_qcgenerator_prop(bpy.types.Operator):
         if not shouldGenCollis:
             collisCollection = toolBox.string_qcGen_existingCollissionCollection
         
-        #Get QC_Type
-        qcType = toolBox.enum_qcGen_modelType
-        qcFlags = von_common.qc_file_types()
-        qcFlags = qcFlags[qcType]
 
 
         #"PROP": {
@@ -416,29 +450,77 @@ class Vonpanel_qcgenerator_prop(bpy.types.Operator):
             populate_qc_dict_from_sections()
 
 
-        return{'FINISHED'}
+        return{'FINISHED'}"""
 
 class Vonpanel_qcgenerator_player(bpy.types.Operator):
+    """
+    NPC Models needs:: $modelname, $bodygroups, $surfaceprop, $cdmaterials, $eyeposition, $illumposition, $include, $collisionmodel
+    """
+
+
     bl_idname = "von.qcgenerator_player"
     bl_label = "Generate QC File"
     def execute(self,context):
         scene = context.scene
         toolBox = scene.toolBox
+        flags = []
+        sections = []
         modelname = toolBox.string_qcGen_mdlModelName
         qc_output = toolBox.string_qcGen_outputPath
         shouldGenCollis = toolBox.bool_qcGen_generateCollission
+        selectedArmatures = [armature for armature in bpy.context.selected_objects if armature.type == "ARMATURE"]
+
+        if shouldGenCollis:
+            create_collission_boxes(selectedArmatures)
+        if not shouldGenCollis:
+            collisioncollection = toolBox.string_qcGen_existingCollissionCollection#
+
+
+        
+        
+
+
+        
+
+
+            
+            
+
+
+
+
         return{'FINISHED'}
 
 class Vonpanel_qcgenerator_npc(bpy.types.Operator):
     bl_idname = "von.qcgenerator_npc"
     bl_label = "Generate QC File"
     def execute(self,context):
+        qcCommands = {}
+        qcControls = {}
         scene = context.scene
         toolBox = scene.toolBox
         modelname = toolBox.string_qcGen_mdlModelName
         qc_output = toolBox.string_qcGen_outputPath
         shouldGenCollis = toolBox.bool_qcGen_generateCollission
+        includeanims = toolBox.enum_qcGen_charAnimIncludes
+
+        qcCommands = {
+            "modelname" : toolBox.string_qcGen_mdlModelName,
+            "shouldGenCollis" : toolBox.bool_qcGen_generateCollission,
+            "includeanims" : toolBox.enum_qcGen_charAnimIncludes
+        }
+            
+        
+
+        qcControls = {
+            "qc_output" : toolBox.string_qcGen_outputPath
+        }
+
+        von_qcbuilder.write_qc_file("npc", qcCommands, qcControls)
+
         return{'FINISHED'}
+
+
 class Vonpanel_RefreshCollections(bpy.types.Operator):
     bl_idname = "von.qcgenerator_refresh_collections"
     bl_label = "Refresh Collection List"
@@ -449,6 +531,118 @@ class Vonpanel_RefreshCollections(bpy.types.Operator):
         self.report({'INFO'}, "Collections synced with scene.")
         return {'FINISHED'}
         
+
+def split_objects_into_collections(context):
+    """Split all objects into temporary collections named original_objectname."""
+    mapping = {}
+
+    for obj in context.scene.objects:
+        if not obj.users_collection:
+            continue
+        original_collections = list(obj.users_collection)
+        new_collection_names = []
+
+        for orig_col in original_collections:
+            new_collection_name = f"{orig_col.name}_{obj.name}"
+            new_collection_names.append(new_collection_name)
+
+            if new_collection_name in bpy.data.collections:
+                new_collection = bpy.data.collections[new_collection_name]
+            else:
+                new_collection = bpy.data.collections.new(new_collection_name)
+                context.scene.collection.children.link(new_collection)
+
+            if obj.name not in new_collection.objects:
+                new_collection.objects.link(obj)
+
+        for col in original_collections:
+            if obj.name in col.objects:
+                col.objects.unlink(obj)
+
+        mapping[obj.name] = {
+            'original': [col.name for col in original_collections],
+            'new': new_collection_names
+        }
+
+    context.scene['_collection_split_mapping'] = mapping
+
+def restore_objects_from_collections(context):
+    mapping = context.scene.get('_collection_split_mapping')
+    if not mapping:
+        print("No mapping found. Nothing to restore.")
+        return
+
+    for obj_name, data in mapping.items():
+        obj = context.scene.objects.get(obj_name)
+        if not obj:
+            continue
+
+        for new_col_name in data['new']:
+            new_col = bpy.data.collections.get(new_col_name)
+            if new_col and obj.name in new_col.objects:
+                new_col.objects.unlink(obj)
+                if len(new_col.objects) == 0:
+                    bpy.data.collections.remove(new_col)
+
+        for orig_col_name in data['original']:
+            orig_col = bpy.data.collections.get(orig_col_name)
+            if orig_col and obj.name not in orig_col.objects:
+                orig_col.objects.link(obj)
+            elif not orig_col:
+                if obj.name not in context.scene.collection.objects:
+                    context.scene.collection.objects.link(obj)
+
+    del context.scene['_collection_split_mapping']
+
+class OBJECT_OT_split_objects(bpy.types.Operator):
+    bl_idname = "object.split_objects"
+    bl_label = "Split Objects"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        split_objects_into_collections(context)
+        self.report({'INFO'}, "Objects split into temporary collections.")
+        return {'FINISHED'}
+
+
+class OBJECT_OT_restore_objects(bpy.types.Operator):
+    bl_idname = "object.restore_objects"
+    bl_label = "Restore Objects"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    def execute(self, context):
+        restore_objects_from_collections(context)
+        self.report({'INFO'}, "Objects restored to original collections.")
+        return {'FINISHED'}
+
+
+class OBJECT_OT_export_smd(bpy.types.Operator):
+    bl_idname = "object.export_smd"
+    bl_label = "Export Scene"
+    bl_options = {'REGISTER', 'UNDO'}
+
+
+    def execute(self, context):
+        scene = context.scene
+        toolBox = scene.toolBox
+        export_folder = toolBox.export_folder
+        # Select all objects
+        for obj in context.scene.objects:
+            obj.select_set(True)
+
+        # Ensure folder exists
+        if not os.path.exists(self.export_folder):
+            os.makedirs(self.export_folder)
+
+        # Invoke the exporter
+        try:
+            bpy.ops.export_scene.smd('INVOKE_DEFAULT')
+        except Exception as e:
+            self.report({'ERROR'}, f"Export failed: {e}")
+            return {'CANCELLED'}
+
+        self.report({'INFO'}, f"Export started. Choose folder in the popup.")
+        return {'FINISHED'}
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -463,10 +657,13 @@ classes = (
     VonPanel_DeltaAnimTrick_PartTwo,
     VonPanel_DeltaAnimTrick_Full,
     #QC Gen
-    Vonpanel_qcgenerator_prop,
     Vonpanel_qcgenerator_player,
     Vonpanel_qcgenerator_npc,
-    Vonpanel_RefreshCollections
+    Vonpanel_RefreshCollections,
+    #Batch Smd Exporter
+    OBJECT_OT_split_objects,
+    OBJECT_OT_restore_objects,
+    OBJECT_OT_export_smd,
 )
 
 

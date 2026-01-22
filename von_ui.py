@@ -25,22 +25,18 @@ class QC_Generator_Main(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         scene = context.scene
         toolBox = scene.toolBox
-        qcData = scene.QC_PrimaryData
+        
         qcType = toolBox.enum_qcGen_modelType
         shouldGenColis = toolBox.bool_qcGen_generateCollission
         layout = self.layout
         
         layout.label(text="QC Generator")
-        if qcType == "PROP":
-            layout.operator("von.qcgenerator_prop")
-        if qcType == "NPC":
-            layout.operator("von.qcgenerator_npc")
-        if qcType == "PLAYER":
-            layout.operator("von.qcgenerator_player")
+        layout.operator(f"von.qcgenerator_{qcType.lower()}")
 
         box = layout.box()
         box.label(text="Data Gathering:")
@@ -62,21 +58,9 @@ class QC_Generator_Main(bpy.types.Panel):
             rightCol.prop(toolBox, "string_qcGen_existingCollissionCollection")
         else: 
             rightCol.label(text="Will Generate Collission")
-        box = layout.box()
-        box.operator("von.qcgenerator_refresh_collections", icon='FILE_REFRESH')
-        box = layout.box()
-        box.label(text="Bodygroups:")
-        box.prop(qcData, "num_boxes")
-        # Loop over each bodygroup box
-        for bg_box in qcData.bodygroup_boxes:
-            bg_ui = box.box()  # create a sub-box for each bodygroup
-            bg_ui.prop(bg_box, "name", text="Bodygroup")  # editable box name
-
-            # Loop over each collection in this bodygroup
-            for item in bg_box.collections:
-                bg_ui.prop(item, "enabled", text=item.name)
         
-
+        
+    
 
 class Delta_Animations(bpy.types.Panel):
     bl_idname = "VONPANEL_PT_delta_animations"
@@ -85,6 +69,7 @@ class Delta_Animations(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -97,10 +82,33 @@ class VMT_Generator_Main(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
         layout.label(text="VMT Generator")
+
+class Batch_SMD_Export(bpy.types.Panel):
+    bl_idname = "VONPANEL_PT_SMD_EXPORT"
+    bl_label = "Batch SMD Export"
+    bl_parent_id = "VONPANEL_PT_parent"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        scene = context.scene
+        toolBox = scene.toolBox
+        layout = self.layout
+        layout.label(text="Collections:")
+        layout.operator(OBJECT_OT_split_objects.bl_idname, icon='OUTLINER_OB_GROUP_INSTANCE')
+        layout.operator(OBJECT_OT_restore_objects.bl_idname, icon='FILE_REFRESH')
+
+        layout.separator()
+        layout.label(text="Export:")
+        layout.prop(toolBox, "export_folder", text="Folder")
+        layout.operator(OBJECT_OT_export_smd.bl_idname, icon='EXPORT')    
 # ----------------------------
 # Secondary Panels
 # ----------------------------
@@ -112,6 +120,7 @@ class Delta_Animations_Advanced(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         scene = context.scene
@@ -141,6 +150,67 @@ class Delta_Animations_Advanced(bpy.types.Panel):
         box.label(text = "Step 5 - Export your armature, proportions armature and both reference armatures")
         box.label(text = "Step 6 - Edit QC")
 
+class QC_Generator_Bodygroups(bpy.types.Panel):
+    bl_idname = "VONPANEL_PT_QC_Generator_Bodygroups"
+    bl_label = "QC Generator Bodygroups"
+    bl_parent_id = "VONPANEL_PT_QC_Generator_Main"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        scene = context.scene
+        toolBox = scene.toolBox
+        qcData = scene.QC_PrimaryData
+        layout = self.layout
+        layout.label(text="Bodygroup Definer")
+
+        box = layout.box()
+        box.operator("von.qcgenerator_refresh_collections", icon='FILE_REFRESH')
+        box = layout.box()
+        box.label(text="Bodygroups:")
+        box.prop(qcData, "num_boxes")
+        # Loop over each bodygroup box
+        for bg_box in qcData.bodygroup_boxes:
+            bg_ui = box.box()  # create a sub-box for each bodygroup
+            bg_ui.prop(bg_box, "name", text="Bodygroup")  # editable box name
+
+            # Loop over each collection in this bodygroup
+            for item in bg_box.collections:
+                bg_ui.prop(item, "enabled", text=item.name)
+
+class QC_Generator_MaterialFolders(bpy.types.Panel):
+    bl_idname = "VONPANEL_PT_QC_Generator_MaterialFolders"
+    bl_label = "QC Generator MaterialFolders"
+    bl_parent_id = "VONPANEL_PT_QC_Generator_Main"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
+   
+
+    def draw(self, context):
+        scene = context.scene
+        toolBox = scene.toolBox
+        qcData = scene.QC_PrimaryData
+        layout = self.layout
+        layout.label(text="Bodygroup Material Folder Locations")
+
+        box = layout.box()
+        box.operator("von.qcgenerator_refresh_collections", icon='FILE_REFRESH')
+        box = layout.box()
+        box.label(text="Bodygroups:")
+        box.prop(qcData, "num_boxes")
+        # Loop over each bodygroup box
+        for bg_box in qcData.num_vmt_files:
+            bg_ui = box.box()  # create a sub-box for each bodygroup
+            bg_ui.prop(bg_box, "name", text="Bodygroup")  # editable box name
+
+            # Loop over each collection in this bodygroup
+            for item in bg_box.collections:
+                bg_ui.prop(item, "enabled", text=item.name)
+
 class QC_Generator_Advanced(bpy.types.Panel):
     bl_idname = "VONPANEL_PT_QC_Generator_Advanced"
     bl_label = "QC Generator Advanced"
@@ -148,13 +218,14 @@ class QC_Generator_Advanced(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         scene = context.scene
         toolBox = scene.toolBox
 
         layout = self.layout
-        layout.label(text="QC Generator")
+        layout.label(text="QC Generator Advanced Settings")
 
 classes = (
     #Base Panel
@@ -164,9 +235,12 @@ classes = (
     Delta_Animations,
     QC_Generator_Main,
     VMT_Generator_Main,
+    Batch_SMD_Export,
 
     #Primary Child Panels
     Delta_Animations_Advanced,
+    QC_Generator_MaterialFolders,
+    QC_Generator_Bodygroups,
     QC_Generator_Advanced
 )
 
