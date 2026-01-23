@@ -4,6 +4,7 @@ from pathlib import Path # type: ignore
 from . import von_deltaanimtrick
 from . import von_common
 from . import von_qcbuilder
+from .von_batchvtfconversions import batch_convert
 #-------------------------------------------------------------------------------------------------------------------------------------------------
 # Delta Anim Trick
 #-------------------------------------------------
@@ -428,11 +429,13 @@ class QC_OT_collect_sequences(bpy.types.Operator):
 
 #-- studiomdl definebones
 
-
-def run_definebones_from_vondata(vonData: bpy.types.PropertyGroup, verbose=True):
-    studiomdlExe = Path(vonData.string_studiomdl_filelocation).resolve()
-    qcPath = Path(vonData.string_qcGen_outputPath).resolve()
-    gmodExe = Path(vonData.string_gmodexe_path).resolve()
+def run_definebones_from_vondata(context):
+    scene = context.scene
+    toolBox = scene.toolBox
+    studiomdlExe = Path(toolBox.string_studiomdl_filelocation).resolve()
+    qcPath = Path(toolBox.string_qcGen_outputPath).resolve()
+    gmodExe = Path(toolBox.string_gmodexe_path).resolve()
+    verbose = toolBox.bool_studiomdl_verbose
 
     if not studiomdlExe.exists():
         raise FileNotFoundError(f"studiomdl.exe not found at {studiomdlExe}")
@@ -449,8 +452,6 @@ def run_definebones_from_vondata(vonData: bpy.types.PropertyGroup, verbose=True)
         "-game", str(gmodFolder),
         str(qcPath)
     ]
-
-    # Run studiomdl.exe from its folder (DLLs load correctly)
     result = subprocess.run(
         command,
         cwd=studiomdlExe.parent,
@@ -466,18 +467,16 @@ def run_definebones_from_vondata(vonData: bpy.types.PropertyGroup, verbose=True)
 
     return result.stdout, result.stderr
 
-
 class OBJECT_OT_run_definebones_vondata(bpy.types.Operator):
     bl_idname = "von.run_definebones_vondata"
     bl_label = "Run Define Bones"
 
     def execute(self, context):
-        # Get the VonData instance
         scene = context.scene
         toolBox = scene.toolBox
 
         try:
-            stdout, stderr = run_definebones_from_vondata(toolBox)
+            stdout, stderr = run_definebones_from_vondata(context)
             self.report({'INFO'}, "Define Bones completed. Check console for output.")
         except Exception as e:
             self.report({'ERROR'}, str(e))
@@ -485,19 +484,6 @@ class OBJECT_OT_run_definebones_vondata(bpy.types.Operator):
 
         return {'FINISHED'}
 
-
-class Vonpanel_batchconvert_imagefiles(bpy.types.Operator):
-    bl_idname = "von.batchconvertfiletypes"
-    bl_label = "Convert Filetypes"
-
-    def execute(self, context):
-        # Get the VonData instance
-        scene = context.scene
-        toolBox = scene.toolBox
-        return {'FINISHED'}
-
-
-#-- Operators
 class Vonpanel_qcgenerator_player(bpy.types.Operator):
     bl_idname = "von.qcgenerator_player"
     bl_label = "Generate QC File"
@@ -514,7 +500,7 @@ class Vonpanel_qcgenerator_player(bpy.types.Operator):
         if shouldGenCollis:
             create_collission_boxes(selectedArmatures)
         if not shouldGenCollis:
-            collisioncollection = toolBox.string_qcGen_existingCollissionCollection#
+            collisioncollection = toolBox.string_qcGen_existingCollissionCollection
 
 
         
@@ -652,15 +638,12 @@ class OBJECT_OT_export_smd(bpy.types.Operator):
         scene = context.scene
         toolBox = scene.toolBox
         export_folder = toolBox.string_export_folder
-        # Select all objects
         for obj in context.scene.objects:
             obj.select_set(True)
 
-        # Ensure folder exists
         if not os.path.exists(self.string_export_folder):
             os.makedirs(self.string_export_folder)
 
-        # Invoke the exporter
         try:
             bpy.ops.export_scene.smd('INVOKE_DEFAULT')
         except Exception as e:
@@ -671,6 +654,16 @@ class OBJECT_OT_export_smd(bpy.types.Operator):
         return {'FINISHED'}
 
 
+#Batch Convert Images
+class Vonpanel_batchconvert_imagefiles(bpy.types.Operator):
+    bl_idname = "von.batchconvertfiletypes"
+    bl_label = "Convert Filetypes"
+
+    def execute(self, context):
+        scene = context.scene
+        toolBox = scene.toolBox
+        batch_convert(context)
+        return {'FINISHED'}
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
 # Register Fnction
 # ----------------------------
@@ -687,10 +680,14 @@ classes = (
     Vonpanel_qcgenerator_player,
     Vonpanel_qcgenerator_npc,
     Vonpanel_RefreshCollections,
+    OBJECT_OT_run_definebones_vondata,
     #Batch Smd Exporter
     OBJECT_OT_split_objects,
     OBJECT_OT_restore_objects,
     OBJECT_OT_export_smd,
+
+    #Batch Image Filetype Changer
+    Vonpanel_batchconvert_imagefiles,
 )
 
 

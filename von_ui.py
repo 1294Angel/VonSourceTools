@@ -56,16 +56,12 @@ class QC_Generator_Main(bpy.types.Panel):
             rightCol.prop(toolBox, "string_qcGen_existingCollissionCollection")
         else: 
             rightCol.label(text="Will Generate Collission")
-        layout.prop(toolBox, "string_")
         
         box = layout.box()
         box.label(text="SurfaceProp:")
         box.prop(toolBox, "enum_surfaceprop_category")
         box.prop(toolBox, "enum_surfaceprop_item")
         
-        
-    
-
 class Delta_Animations(bpy.types.Panel):
     bl_idname = "VONPANEL_PT_delta_animations"
     bl_label = "Delta Animation Trick Simple"
@@ -271,7 +267,7 @@ class QC_Generator_Advanced(bpy.types.Panel):
 # ----------------------------
 # Tertiary Panels
 # ----------------------------
-class QC_Generator_AttachmentPointBones(bpy.types.Panel):
+"""class QC_Generator_AttachmentPointBones(bpy.types.Panel):
     bl_idname = "VONPANEL_PT_QC_Attach_Point"
     bl_label = "QC Generator Attachment Point Definer"
     bl_parent_id = "VONPANEL_PT_QC_Generator_Advanced"
@@ -286,7 +282,15 @@ class QC_Generator_AttachmentPointBones(bpy.types.Panel):
         qcData = scene.QC_PrimaryData
         layout = self.layout
         layout.label(text="Attachment Point Definer")
-
+        layout.label(text="Blender may hang on long operations", icon="DOT")
+        layout.label(text="let it run it should sort itself once the folder is batched.", icon="DOT")
+        layout.label(text= "Check the export folder to see if it's crashed or suceding", icon="DOT")
+        row = layout.row()
+        row.prop(toolBox,"string_gmodexe_path")
+        row.prop(toolBox,"bool_studiomdl_verbose")
+        layout.operator("von.run_definebones_vondata")
+        
+"""
 
 classes = (
     #Base Panel
@@ -297,6 +301,7 @@ classes = (
     QC_Generator_Main,
     VMT_Generator_Main,
     Batch_SMD_Export,
+    Batch_image_fileconversion,
 
     #Primary Child Panels
     Delta_Animations_Advanced,
@@ -306,7 +311,6 @@ classes = (
     QC_Generator_Advanced,
 
     #Secondary Child Panels
-    QC_Generator_AttachmentPointBones
 )
 
 

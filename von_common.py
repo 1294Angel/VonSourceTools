@@ -153,19 +153,18 @@ class QC_PrimaryData(bpy.types.PropertyGroup):
         type=Armature_Name
     ) # type: ignore
 
-def populate_filetypesTo_vtf():
-        items = [
-            ("png", ".png", "The source file is a PNG image"),
-            ("jpg", ".jpg", "The source file is a JPG/JPEG image"),
-            ("jpeg", ".jpeg", "The source file is a JPEG image"),
-            ("tga", ".tga", "The source file is a TGA image"),
-            ("bmp", ".bmp", "The source file is a BMP image"),
-            ("psd", ".psd", "The source file is a Photoshop PSD file"),
-            ("hdr", ".hdr", "The source file is a HDR image"),
-            ("exr", ".exr", "The source file is an OpenEXR image"),
-            ("vtf", ".vtf", "The source file is already a VTF file")
-        ]
-        return items
+def populate_filetypes_to_vtf(self, context):
+    return [
+        ("png", ".png", "The source file is a PNG image"),
+        ("jpg", ".jpg", "The source file is a JPG/JPEG image"),
+        ("jpeg", ".jpeg", "The source file is a JPEG image"),
+        ("tga", ".tga", "The source file is a TGA image"),
+        ("bmp", ".bmp", "The source file is a BMP image"),
+        ("psd", ".psd", "The source file is a Photoshop PSD file"),
+        ("hdr", ".hdr", "The source file is a HDR image"),
+        ("exr", ".exr", "The source file is an OpenEXR image"),
+        ("vtf", ".vtf", "The source file is already a VTF file")
+    ]
 
 #----------------------------------------------------------------------
 # Toolbox / VonData Pointer
@@ -231,11 +230,18 @@ class VonData(bpy.types.PropertyGroup):
     ) # type: ignore
 
     string_studiomdl_filelocation: bpy.props.StringProperty(
-        name="SurfacePropFileLoc",
+        name="Studiomdl File Location",
         description="This is where the surfaceprop file location is....",
-        default=str(Path(__file__).parent / "storeditems" / "external_software_dependancies" / "studiomdl" / "studiomdl.exe"),
+        default=str(Path(__file__).parent / "storeditems" / "external_software_dependancies" / "studiomdl" / "bin" / "studiomdl.exe"),
         subtype='FILE_PATH',
     ) # type: ignore
+
+    bool_studiomdl_verbose : bpy.props.BoolProperty(
+        name = "Print Results?",
+        description = "",
+        default = False
+    ) # type: ignore
+
 
      #---------------------------------------------------------------- QC Generator Stuff (SIMPLE)
 
@@ -249,7 +255,8 @@ class VonData(bpy.types.PropertyGroup):
     enum_qcGen_modelType : bpy.props.EnumProperty(
         name="QC Type",
         description="Type of model you're making a QC for, is it a prop, character, npc?",
-        items=  qc_populate_typesEnum(qc_file_types())
+        items=  qc_populate_typesEnum(qc_file_types()),
+        default = 0
     ) # type: ignore
 
     string_qcGen_outputPath : bpy.props.StringProperty(
@@ -345,19 +352,20 @@ class VonData(bpy.types.PropertyGroup):
     enum_vtfbatch_sourcefiletype: bpy.props.EnumProperty(
         name="Source Filetype",
         description="Choose the source file type for conversion",
-        items=populate_filetypesTo_vtf,
-        default="png"
-    )  # type: ignore
+        items=populate_filetypes_to_vtf,
+        default=0
+    ) # type: ignore
 
     # Target filetype enum (dynamic, excludes source)
     def populate_target_filetypes(self, context):
-        source = context.scene.enum_vtfbatch_sourcefiletype
-        return [item for item in populate_filetypesTo_vtf() if item[0] != source]
+        source = context.scene.toolBox.enum_vtfbatch_sourcefiletype
+        return [item for item in populate_filetypes_to_vtf(self, context) if item[0] != source]
 
     enum_vtfbatch_targetfiletype: bpy.props.EnumProperty(
         name="Target Filetype",
         description="Choose the target file type for conversion",
-        items=populate_target_filetypes
+        items=populate_target_filetypes,
+        default=0
     ) # type: ignore
 
 
@@ -405,6 +413,10 @@ def get_sequences_dict(primaryData):
 #----------------------------------------------------------------------
 
 classes = [
+    #attachment points
+    Bone_NameForAttach,
+    Armature_Name,
+    
     # Bodygroup
     QC_BodygroupCollectionItem,
     QC_BodygroupBox,
