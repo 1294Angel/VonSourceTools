@@ -58,6 +58,28 @@ class VMT_FilePathItem(bpy.types.PropertyGroup):
     ) # type: ignore
 
 #----------------------------------------------------------------------
+# Animation Sequence Filepath Storage
+#----------------------------------------------------------------------
+
+
+class SequenceItem(bpy.types.PropertyGroup):
+    sequenceName: bpy.props.StringProperty(
+        name="Sequence"
+    )  # type: ignore
+
+    shouldExport: bpy.props.BoolProperty(
+        name="Export",
+        default=True
+    )  # type: ignore
+
+class SequenceRigData(bpy.types.PropertyGroup):
+    armatureName: bpy.props.StringProperty(
+        name="Armature"
+    )  # type: ignore
+
+    sequences: bpy.props.CollectionProperty(type=SequenceItem)  # type: ignore
+
+#----------------------------------------------------------------------
 # Bodygroup PropertyGroups
 #----------------------------------------------------------------------
 
@@ -80,7 +102,6 @@ class QC_BodygroupBox(bpy.types.PropertyGroup):
 #----------------------------------------------------------------------
 
 def update_vmt_files(self, context):
-    """Automatically sync vmt_filepaths collection to num_vmt_files."""
     primary_data = context.scene.QC_PrimaryData
     current_count = len(primary_data.vmt_filepaths)
     target_count = primary_data.num_vmt_files
@@ -91,6 +112,10 @@ def update_vmt_files(self, context):
     elif target_count < current_count:
         for _ in range(current_count - target_count):
             primary_data.vmt_filepaths.remove(len(primary_data.vmt_filepaths)-1)
+
+def update_sequences(self, context):
+    print("Yolo")
+    primary_data = context.scene.QC_PrimaryData
 
 class QC_PrimaryData(bpy.types.PropertyGroup):
     # Bodygroup boxes
@@ -108,6 +133,11 @@ class QC_PrimaryData(bpy.types.PropertyGroup):
         update=update_vmt_files
     ) # type: ignore
     vmt_filepaths: bpy.props.CollectionProperty(type=VMT_FilePathItem) # type: ignore
+
+    sequence_objectdata: bpy.props.CollectionProperty(
+        type=SequenceRigData
+    )  # type: ignore
+
 
 
 
@@ -275,6 +305,10 @@ classes = [
     # Bodygroup
     QC_BodygroupCollectionItem,
     QC_BodygroupBox,
+
+    #Sequence
+    SequenceItem,
+    SequenceRigData,
 
     # VMT
     VMT_FilePathItem,

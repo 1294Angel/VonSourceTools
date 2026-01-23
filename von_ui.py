@@ -202,9 +202,34 @@ class QC_Generator_MaterialFolders(bpy.types.Panel):
         box.label(text="VMT Filepaths:")
         box.prop(qcData, "num_vmt_files")
 
-        # Loop over each VMT file
         for i, vmt_item in enumerate(qcData.vmt_filepaths):
             box.prop(vmt_item, "filepath", text=f"VMT {i+1}")
+
+class QC_Generator_AnimSel(bpy.types.Panel):
+    bl_idname = "VONPANEL_PT_QC_Anim_Sel"
+    bl_label = "QC Generator Animation Selector"
+    bl_parent_id = "VONPANEL_PT_QC_Generator_Main"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        primaryData = context.scene.QC_PrimaryData
+
+        layout.operator("von.collect_sequences", icon='ARMATURE_DATA')
+
+        for rig in primaryData.sequence_objectdata:
+            box = layout.box()
+            box.label(text=rig.armatureName, icon='ARMATURE_DATA')
+
+            for seq in rig.sequences:
+                row = box.row()
+                row.prop(seq, "shouldExport", text="")
+                row.label(text=seq.sequenceName)
+
+
 class QC_Generator_Advanced(bpy.types.Panel):
     bl_idname = "VONPANEL_PT_QC_Generator_Advanced"
     bl_label = "QC Generator Advanced"
@@ -221,11 +246,31 @@ class QC_Generator_Advanced(bpy.types.Panel):
         layout = self.layout
         layout.label(text="QC Generator Advanced Settings")
 
+# ----------------------------
+# Tertiary Panels
+# ----------------------------
+class QC_Generator_AttachmentPointBones(bpy.types.Panel):
+    bl_idname = "VONPANEL_PT_QC_Attach_Point"
+    bl_label = "QC Generator Attachment Point Definer"
+    bl_parent_id = "VONPANEL_PT_QC_Generator_Advanced"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        scene = context.scene
+        toolBox = scene.toolBox
+        qcData = scene.QC_PrimaryData
+        layout = self.layout
+        layout.label(text="Attachment Point Definer")
+
+
 classes = (
     #Base Panel
     Parent_Panel,
 
-    #Parent Panels
+    #Primary Parent Panels
     Delta_Animations,
     QC_Generator_Main,
     VMT_Generator_Main,
@@ -234,8 +279,12 @@ classes = (
     #Primary Child Panels
     Delta_Animations_Advanced,
     QC_Generator_MaterialFolders,
+    QC_Generator_AnimSel,
     QC_Generator_Bodygroups,
-    QC_Generator_Advanced
+    QC_Generator_Advanced,
+
+    #Secondary Child Panels
+    QC_Generator_AttachmentPointBones
 )
 
 
