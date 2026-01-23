@@ -56,6 +56,7 @@ class QC_Generator_Main(bpy.types.Panel):
             rightCol.prop(toolBox, "string_qcGen_existingCollissionCollection")
         else: 
             rightCol.label(text="Will Generate Collission")
+        layout.prop(toolBox, "string_")
         
         box = layout.box()
         box.label(text="SurfaceProp:")
@@ -90,7 +91,27 @@ class VMT_Generator_Main(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.label(text="VMT Generator")
+class Batch_image_fileconversion(bpy.types.Panel):
+    bl_idname = "VONPANEL_PT_Image_Converter"
+    bl_label = "Image Filetype Converter"
+    bl_parent_id = "VONPANEL_PT_parent"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
 
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        toolBox = scene.toolBox
+        layout.label(text="Image Filetype Converter")
+        row = layout.row()
+        row.prop(toolBox, "string_vtfbatch_inputfolder", text="Input Folder")
+        row.prop(toolBox, "string_vtfbatch_outputfolder", text="Output Folder")
+        row = layout.row()
+        row.prop(toolBox, "enum_vtfbatch_sourcefiletype", text="Source Filetype")
+        row.prop(toolBox, "enum_vtfbatch_targetfiletype", text="Target Filetype")
+        layout.operator("von.batchconvertfiletypes", text="Run Conversion")
 class Batch_SMD_Export(bpy.types.Panel):
     bl_idname = "VONPANEL_PT_SMD_EXPORT"
     bl_label = "Batch SMD Export"
@@ -110,8 +131,9 @@ class Batch_SMD_Export(bpy.types.Panel):
 
         layout.separator()
         layout.label(text="Export:")
-        layout.prop(toolBox, "export_folder", text="Folder")
+        layout.prop(toolBox, "string_export_folder", text="Folder")
         layout.operator(OBJECT_OT_export_smd.bl_idname, icon='EXPORT')    
+        
 # ----------------------------
 # Secondary Panels
 # ----------------------------

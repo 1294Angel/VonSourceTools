@@ -1,4 +1,4 @@
-import json, bpy, bmesh, os # type: ignore
+import json, bpy, bmesh, os, subprocess # type: ignore
 from mathutils import Vector # type: ignore
 from pathlib import Path # type: ignore
 from . import von_deltaanimtrick
@@ -426,8 +426,75 @@ class QC_OT_collect_sequences(bpy.types.Operator):
 
         return {'FINISHED'}
 
-#-- get selected bone locations
+#-- studiomdl definebones
 
+
+def run_definebones_from_vondata(vonData: bpy.types.PropertyGroup, verbose=True):
+    studiomdlExe = Path(vonData.string_studiomdl_filelocation).resolve()
+    qcPath = Path(vonData.string_qcGen_outputPath).resolve()
+    gmodExe = Path(vonData.string_gmodexe_path).resolve()
+
+    if not studiomdlExe.exists():
+        raise FileNotFoundError(f"studiomdl.exe not found at {studiomdlExe}")
+    if not qcPath.exists():
+        raise FileNotFoundError(f"QC file not found at {qcPath}")
+    if not gmodExe.exists():
+        raise FileNotFoundError(f"Gmod.exe not found at {gmodExe}")
+    gmodFolder = gmodExe.parent
+
+    command = [
+        str(studiomdlExe),
+        "-definebones",
+        "-verbose",
+        "-game", str(gmodFolder),
+        str(qcPath)
+    ]
+
+    # Run studiomdl.exe from its folder (DLLs load correctly)
+    result = subprocess.run(
+        command,
+        cwd=studiomdlExe.parent,
+        capture_output=True,
+        text=True
+    )
+
+    if verbose:
+        print("=== STDOUT ===")
+        print(result.stdout)
+        print("=== STDERR ===")
+        print(result.stderr)
+
+    return result.stdout, result.stderr
+
+
+class OBJECT_OT_run_definebones_vondata(bpy.types.Operator):
+    bl_idname = "von.run_definebones_vondata"
+    bl_label = "Run Define Bones"
+
+    def execute(self, context):
+        # Get the VonData instance
+        scene = context.scene
+        toolBox = scene.toolBox
+
+        try:
+            stdout, stderr = run_definebones_from_vondata(toolBox)
+            self.report({'INFO'}, "Define Bones completed. Check console for output.")
+        except Exception as e:
+            self.report({'ERROR'}, str(e))
+            return {'CANCELLED'}
+
+        return {'FINISHED'}
+
+
+class Vonpanel_batchconvert_imagefiles(bpy.types.Operator):
+    bl_idname = "von.batchconvertfiletypes"
+    bl_label = "Convert Filetypes"
+
+    def execute(self, context):
+        # Get the VonData instance
+        scene = context.scene
+        toolBox = scene.toolBox
+        return {'FINISHED'}
 
 
 #-- Operators
@@ -584,14 +651,14 @@ class OBJECT_OT_export_smd(bpy.types.Operator):
     def execute(self, context):
         scene = context.scene
         toolBox = scene.toolBox
-        export_folder = toolBox.export_folder
+        export_folder = toolBox.string_export_folder
         # Select all objects
         for obj in context.scene.objects:
             obj.select_set(True)
 
         # Ensure folder exists
-        if not os.path.exists(self.export_folder):
-            os.makedirs(self.export_folder)
+        if not os.path.exists(self.string_export_folder):
+            os.makedirs(self.string_export_folder)
 
         # Invoke the exporter
         try:

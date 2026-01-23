@@ -46,6 +46,20 @@ def qc_populate_typesEnum(qcDefaults):
     for dict in qcDefaults:
         enumItems.append((dict,dict,f"Select if your QC is going to be: {dict}"))
     return enumItems
+#----------------------------------------------------------------------
+# BoneLoc For QC $Attachment Storage
+#----------------------------------------------------------------------
+
+class Bone_NameForAttach(bpy.types.PropertyGroup):
+    bonename: bpy.props.StringProperty(
+        name="Bone Name"
+    ) # type: ignore
+
+class Armature_Name(bpy.types.PropertyGroup):
+    armatureName: bpy.props.StringProperty(
+        name="Armature"
+    ) # type: ignore
+    sequences: bpy.props.CollectionProperty(type=Bone_NameForAttach)  # type: ignore
 
 #----------------------------------------------------------------------
 # VMT Filepath Storage
@@ -113,9 +127,6 @@ def update_vmt_files(self, context):
         for _ in range(current_count - target_count):
             primary_data.vmt_filepaths.remove(len(primary_data.vmt_filepaths)-1)
 
-def update_sequences(self, context):
-    print("Yolo")
-    primary_data = context.scene.QC_PrimaryData
 
 class QC_PrimaryData(bpy.types.PropertyGroup):
     # Bodygroup boxes
@@ -138,8 +149,23 @@ class QC_PrimaryData(bpy.types.PropertyGroup):
         type=SequenceRigData
     )  # type: ignore
 
+    attachpoint_bonenames: bpy.props.CollectionProperty(
+        type=Armature_Name
+    ) # type: ignore
 
-
+def populate_filetypesTo_vtf():
+        items = [
+            ("png", ".png", "The source file is a PNG image"),
+            ("jpg", ".jpg", "The source file is a JPG/JPEG image"),
+            ("jpeg", ".jpeg", "The source file is a JPEG image"),
+            ("tga", ".tga", "The source file is a TGA image"),
+            ("bmp", ".bmp", "The source file is a BMP image"),
+            ("psd", ".psd", "The source file is a Photoshop PSD file"),
+            ("hdr", ".hdr", "The source file is a HDR image"),
+            ("exr", ".exr", "The source file is an OpenEXR image"),
+            ("vtf", ".vtf", "The source file is already a VTF file")
+        ]
+        return items
 
 #----------------------------------------------------------------------
 # Toolbox / VonData Pointer
@@ -195,6 +221,21 @@ class VonData(bpy.types.PropertyGroup):
         items=surfaceprop_item_items
     ) # type: ignore
 
+    #---------------------------------------------------------------- Definebones Stuff QC Gen
+
+    string_gmodexe_path: bpy.props.StringProperty(
+        name="Gmod.Exe Path",
+        description="The file location of Gmod.exe for studiomdl compiler",
+        default="",
+        subtype='FILE_PATH',
+    ) # type: ignore
+
+    string_studiomdl_filelocation: bpy.props.StringProperty(
+        name="SurfacePropFileLoc",
+        description="This is where the surfaceprop file location is....",
+        default=str(Path(__file__).parent / "storeditems" / "external_software_dependancies" / "studiomdl" / "studiomdl.exe"),
+        subtype='FILE_PATH',
+    ) # type: ignore
 
      #---------------------------------------------------------------- QC Generator Stuff (SIMPLE)
 
@@ -245,7 +286,7 @@ class VonData(bpy.types.PropertyGroup):
 
     # Smd Batch Exporter
 
-    export_folder: bpy.props.StringProperty(
+    string_export_folder: bpy.props.StringProperty(
         name="Export Folder",
         description="Folder to save exported SMDs",
         default="//",
@@ -262,6 +303,61 @@ class VonData(bpy.types.PropertyGroup):
         soft_min = 0,
         soft_max = 10,
         step = 1
+    ) # type: ignore
+
+    bool_qcGen_incDefaultCharAnim : bpy.props.BoolProperty(
+        name = "Include Default Char Animations?",
+        description = "Should include anm_m, ect?",
+        default = False
+    ) # type: ignore
+
+    bool_qcGen_shouldDefineBones : bpy.props.BoolProperty(
+        name = "Generate Definebones.qci?",
+        description = "Should a definebones.qci be generated?",
+        default = False
+    ) # type: ignore
+
+#---------------------------------------------------------------- vtf batch conversions
+
+    
+    
+    string_vtfbatch_vtfccmdexe: bpy.props.StringProperty(
+        name="VTFCmd Executable",
+        description="Path to VTFCmd.exe",
+        default=str(Path(__file__).parent / "storeditems" / "external_software_dependancies" / "vtfcmd" / "VTFCmd.exe"),
+        subtype='FILE_PATH'
+    )  # type: ignore
+
+    string_vtfbatch_inputfolder: bpy.props.StringProperty(
+        name="Input Folder",
+        description="Folder containing files to convert",
+        default="",
+        subtype='DIR_PATH'
+    )  # type: ignore
+
+    string_vtfbatch_outputfolder: bpy.props.StringProperty(
+        name="Output Folder",
+        description="Folder to save converted files",
+        default="",
+        subtype='DIR_PATH'
+    )  # type: ignore
+
+    enum_vtfbatch_sourcefiletype: bpy.props.EnumProperty(
+        name="Source Filetype",
+        description="Choose the source file type for conversion",
+        items=populate_filetypesTo_vtf,
+        default="png"
+    )  # type: ignore
+
+    # Target filetype enum (dynamic, excludes source)
+    def populate_target_filetypes(self, context):
+        source = context.scene.enum_vtfbatch_sourcefiletype
+        return [item for item in populate_filetypesTo_vtf() if item[0] != source]
+
+    enum_vtfbatch_targetfiletype: bpy.props.EnumProperty(
+        name="Target Filetype",
+        description="Choose the target file type for conversion",
+        items=populate_target_filetypes
     ) # type: ignore
 
 
@@ -295,7 +391,14 @@ def get_bodygroup_by_name(qcData, box_name):
             return box
     return None
 
-
+def get_sequences_dict(primaryData):
+    sequencesDict = {}
+    primaryData = bpy.context.scene.QC_PrimaryData
+    for rigData in primaryData.sequence_objectdata:
+        rigName = rigData.armatureName
+        sequenceNames = [seq.sequenceName for seq in rigData.sequences]
+        sequencesDict[rigName] = sequenceNames
+    return sequencesDict # { RigName: [SequenceName, ect], RigName2, ectectect }
 
 #----------------------------------------------------------------------
 # Registration
