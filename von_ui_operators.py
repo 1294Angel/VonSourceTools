@@ -397,12 +397,13 @@ def collect_actions_from_armature(obj):
     ad = obj.animation_data
     if not ad:
         return actions
-    if ad.action:
+    if ad.action and isinstance(ad.action, bpy.types.Action):
         actions.add(ad.action)
     for track in ad.nla_tracks:
         for strip in track.strips:
-            if strip.action:
+            if strip.action and isinstance(strip.action, bpy.types.Action):
                 actions.add(strip.action)
+
     return actions
 class QC_OT_collect_sequences(bpy.types.Operator):
     bl_idname = "von.collect_sequences"
@@ -423,6 +424,7 @@ class QC_OT_collect_sequences(bpy.types.Operator):
 
             for action in actions:
                 seq = rigData.sequences.add()
+                seq.originalName = action.name
                 seq.sequenceName = action.name
 
         return {'FINISHED'}
@@ -484,39 +486,20 @@ class OBJECT_OT_run_definebones_vondata(bpy.types.Operator):
 
         return {'FINISHED'}
 
-class Vonpanel_qcgenerator_player(bpy.types.Operator):
-    bl_idname = "von.qcgenerator_player"
+class Vonpanel_qcgenerator_prop(bpy.types.Operator):
+    bl_idname = "von.qcgenerator_prop"
     bl_label = "Generate QC File"
     def execute(self,context):
         scene = context.scene
         toolBox = scene.toolBox
-        flags = []
-        sections = []
-        modelname = toolBox.string_qcGen_mdlModelName
-        qc_output = toolBox.string_qcGen_outputPath
-        shouldGenCollis = toolBox.bool_qcGen_generateCollission
-        selectedArmatures = [armature for armature in bpy.context.selected_objects if armature.type == "ARMATURE"]
-
-        if shouldGenCollis:
-            create_collission_boxes(selectedArmatures)
-        if not shouldGenCollis:
-            collisioncollection = toolBox.string_qcGen_existingCollissionCollection
-
-
-        
-        
-
-
-        
-
-
-            
-            
-
-
-
-
+class Vonpanel_qcgenerator_player(bpy.types.Operator):
+    bl_idname = "von.qcgenerator_character"
+    bl_label = "Generate QC File"
+    def execute(self,context):
+        scene = context.scene
+        toolBox = scene.toolBox
         return{'FINISHED'}
+
 class Vonpanel_qcgenerator_npc(bpy.types.Operator):
     bl_idname = "von.qcgenerator_npc"
     bl_label = "Generate QC File"
@@ -677,6 +660,7 @@ classes = (
     VonPanel_DeltaAnimTrick_Full,
     #QC Gen
     QC_OT_collect_sequences,
+    Vonpanel_qcgenerator_prop,
     Vonpanel_qcgenerator_player,
     Vonpanel_qcgenerator_npc,
     Vonpanel_RefreshCollections,

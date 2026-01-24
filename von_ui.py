@@ -35,8 +35,10 @@ class QC_Generator_Main(bpy.types.Panel):
         layout = self.layout
         
         layout.label(text="QC Generator")
-        layout.operator(f"von.qcgenerator_{qcType.lower()}")
-
+        row = self.layout.row()
+        row.scale_y = 2     # taller than standard
+        row.operator(f"von.qcgenerator_{qcType.lower()}",icon='CHECKMARK')
+        layout = self.layout
         box = layout.box()
         box.label(text="Data Gathering:")
         split = box.split(factor=0.5)
@@ -101,6 +103,8 @@ class Batch_image_fileconversion(bpy.types.Panel):
         scene = context.scene
         toolBox = scene.toolBox
         layout.label(text="Image Filetype Converter")
+        layout.label(text="Blender might hang if converting to or from vtf")
+        layout.label(text="May take a few minutes")
         row = layout.row()
         row.prop(toolBox, "string_vtfbatch_inputfolder", text="Input Folder")
         row.prop(toolBox, "string_vtfbatch_outputfolder", text="Output Folder")
@@ -239,13 +243,17 @@ class QC_Generator_AnimSel(bpy.types.Panel):
         layout.operator("von.collect_sequences", icon='ARMATURE_DATA')
 
         for rig in primaryData.sequence_objectdata:
-            box = layout.box()
-            box.label(text=rig.armatureName, icon='ARMATURE_DATA')
+            rigBox = layout.box()
+            rigBox.label(text=rig.armatureName, icon='ARMATURE_DATA')
 
             for seq in rig.sequences:
-                row = box.row()
+                seqBox = rigBox.box()
+                seqBox.label(text=f"AnimFile = {seq.originalName}")
+                row = seqBox.row()
                 row.prop(seq, "shouldExport", text="")
-                row.label(text=seq.sequenceName)
+                row.prop(seq, "sequenceName", text="")
+                seqBox.prop(seq, "enum_activity_category")
+                seqBox.prop(seq, "enum_activity")
 
 
 class QC_Generator_Advanced(bpy.types.Panel):

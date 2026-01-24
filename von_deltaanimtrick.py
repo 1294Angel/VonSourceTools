@@ -5,7 +5,7 @@ from . import von_common
 
 
 
-
+# README -- All code from here is not mine, I've taken code from: https://github.com/sksh70/proportion_trick_script -- All I have done is modify the base code from 2.9 to create functionality and added some functions to automate certain steps.
 
 #-------------------------------------------------------------------------------------------------------------
 

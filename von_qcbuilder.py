@@ -27,6 +27,50 @@ def gather_bodygroup_data():
 
     return bodygroups # returns dict {"Bodygroup Name" : ["Collection Name""CollectioName" ect]}
 
+def gather_sequence_export_data(context):
+    """
+    {
+        armatureName: {
+            originalSequenceName: {
+                sequenceName,
+                shouldExport,
+                qcPath,
+                customTag,
+                activityCategory,
+                activity
+            }
+        }
+    }
+    """
+
+    primaryData = context.scene.QC_PrimaryData
+    export_data = {}
+
+    def clean_enum(value):
+        return "" if not value or value == "NONE" else value
+
+    for rig in primaryData.sequence_objectdata:
+        armature_name = rig.armatureName
+        export_data[armature_name] = {}
+
+        for seq in rig.sequences:
+            original_name = seq.originalName or ""
+
+            export_data[armature_name][original_name] = {
+                "sequenceName": seq.sequenceName or "",
+                "shouldExport": bool(seq.shouldExport),
+                "qcPath": seq.qcPath or "",
+                "customTag": seq.customTag or "",
+                "activityCategory": clean_enum(
+                    getattr(seq, "enum_activity_category", "")
+                ),
+                "activity": clean_enum(
+                    getattr(seq, "enum_activity", "")
+                )
+            }
+
+    return export_data
+
 
 
 def make_dictcommand_into_qccommand(inputCommand):

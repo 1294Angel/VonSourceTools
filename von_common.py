@@ -5,6 +5,158 @@ from pathlib import Path
 #----------------------------------------------------------------------
 default_surfaceprop_path = str(Path(__file__).parent / "storeditems" / "qcgenerator" / "templates" / "surfaceprops.json")
 
+MODEL_TYPE_CATEGORY_MAP = {
+    "NPC": [
+        "Basic", "Movement", "Combat", "Gestures",
+        "NPC_Reactions", "Signals_Commands", "Interaction",
+        "Swimming", "Vehicles", "Scripted_Sequences"
+    ],
+    "CHARACTER": [
+        "Basic", "Movement", "Combat", "Gestures",
+        "NPC_Reactions", "Signals_Commands", "Interaction",
+        "Swimming", "Vehicles", "Scripted_Sequences"
+    ],
+    "VIEWMODEL": ["Viewmodel"],
+    "PROP": [],
+    "WORLDMODEL": []
+}
+NONE_ENUM = ("NONE", "None", "")
+#----------------------------------------------------------------------
+    # Delta Anim Data Storage
+#----------------------------------------------------------------------
+
+def deltaanimtrick_valvebipeds_1():
+    valvebipeds = [
+    'ValveBiped.Bip01_Pelvis',
+    'ValveBiped.Bip01_Spine',
+    'ValveBiped.Bip01_Spine1',
+    'ValveBiped.Bip01_Spine2',
+    'ValveBiped.Bip01_Spine4',
+    'ValveBiped.Bip01_Neck1',
+    'ValveBiped.Bip01_Head1',
+    'ValveBiped.Bip01_R_Clavicle',
+    'ValveBiped.Bip01_R_UpperArm',
+    'ValveBiped.Bip01_R_Forearm',
+    'ValveBiped.Bip01_R_Hand',
+    'ValveBiped.Bip01_R_Finger0',
+    'ValveBiped.Bip01_R_Finger01',
+    'ValveBiped.Bip01_R_Finger02',
+    'ValveBiped.Bip01_R_Finger1',
+    'ValveBiped.Bip01_R_Finger11',
+    'ValveBiped.Bip01_R_Finger12',
+    'ValveBiped.Bip01_R_Finger2',
+    'ValveBiped.Bip01_R_Finger21',
+    'ValveBiped.Bip01_R_Finger22',
+    'ValveBiped.Bip01_R_Finger3',
+    'ValveBiped.Bip01_R_Finger31',
+    'ValveBiped.Bip01_R_Finger32',
+    'ValveBiped.Bip01_R_Finger4',
+    'ValveBiped.Bip01_R_Finger41',
+    'ValveBiped.Bip01_R_Finger42',
+    'ValveBiped.Bip01_L_Clavicle',
+    'ValveBiped.Bip01_L_UpperArm',
+    'ValveBiped.Bip01_L_Forearm',
+    'ValveBiped.Bip01_L_Hand',
+    'ValveBiped.Bip01_L_Finger0',
+    'ValveBiped.Bip01_L_Finger01',
+    'ValveBiped.Bip01_L_Finger02',
+    'ValveBiped.Bip01_L_Finger1',
+    'ValveBiped.Bip01_L_Finger11',
+    'ValveBiped.Bip01_L_Finger12',
+    'ValveBiped.Bip01_L_Finger2',
+    'ValveBiped.Bip01_L_Finger21',
+    'ValveBiped.Bip01_L_Finger22',
+    'ValveBiped.Bip01_L_Finger3',
+    'ValveBiped.Bip01_L_Finger31',
+    'ValveBiped.Bip01_L_Finger32',
+    'ValveBiped.Bip01_L_Finger4',
+    'ValveBiped.Bip01_L_Finger41',
+    'ValveBiped.Bip01_L_Finger42',
+    'ValveBiped.Bip01_R_Thigh',
+    'ValveBiped.Bip01_R_Calf',
+    'ValveBiped.Bip01_R_Foot',
+    'ValveBiped.Bip01_R_Toe0',
+    'ValveBiped.Bip01_L_Thigh',
+    'ValveBiped.Bip01_L_Calf',
+    'ValveBiped.Bip01_L_Foot',
+    'ValveBiped.Bip01_L_Toe0',
+    ]
+
+    return valvebipeds
+
+
+def deltaanimtrick_valvebipeds_2():
+    valvebipeds2 = [
+    'ValveBiped.Bip01_L_Thigh',
+    'ValveBiped.Bip01_L_Calf',
+    'ValveBiped.Bip01_L_Calf',
+    'ValveBiped.Bip01_L_Foot',
+    'ValveBiped.Bip01_R_Thigh',
+    'ValveBiped.Bip01_R_Calf',
+    'ValveBiped.Bip01_R_Calf',
+    'ValveBiped.Bip01_R_Foot',
+    'ValveBiped.Bip01_L_UpperArm',
+    'ValveBiped.Bip01_L_Forearm',
+    'ValveBiped.Bip01_L_Forearm',
+    'ValveBiped.Bip01_L_Hand',
+    'ValveBiped.Bip01_R_UpperArm',
+    'ValveBiped.Bip01_R_Forearm',
+    'ValveBiped.Bip01_R_Forearm',
+    'ValveBiped.Bip01_R_Hand',
+    'ValveBiped.Bip01_L_Finger0',
+    'ValveBiped.Bip01_L_Finger01',
+    'ValveBiped.Bip01_L_Finger01',
+    'ValveBiped.Bip01_L_Finger02',
+    'ValveBiped.Bip01_L_Finger1',
+    'ValveBiped.Bip01_L_Finger11',
+    'ValveBiped.Bip01_L_Finger11',
+    'ValveBiped.Bip01_L_Finger12',
+    'ValveBiped.Bip01_L_Finger2',
+    'ValveBiped.Bip01_L_Finger21',
+    'ValveBiped.Bip01_L_Finger21',
+    'ValveBiped.Bip01_L_Finger22',
+    'ValveBiped.Bip01_L_Finger3',
+    'ValveBiped.Bip01_L_Finger31',
+    'ValveBiped.Bip01_L_Finger31',
+    'ValveBiped.Bip01_L_Finger32',
+    'ValveBiped.Bip01_L_Finger4',
+    'ValveBiped.Bip01_L_Finger41',
+    'ValveBiped.Bip01_L_Finger41',
+    'ValveBiped.Bip01_L_Finger42',
+    'ValveBiped.Bip01_R_Finger0',
+    'ValveBiped.Bip01_R_Finger01',
+    'ValveBiped.Bip01_R_Finger01',
+    'ValveBiped.Bip01_R_Finger02',
+    'ValveBiped.Bip01_R_Finger1',
+    'ValveBiped.Bip01_R_Finger11',
+    'ValveBiped.Bip01_R_Finger11',
+    'ValveBiped.Bip01_R_Finger12',
+    'ValveBiped.Bip01_R_Finger2',
+    'ValveBiped.Bip01_R_Finger21',
+    'ValveBiped.Bip01_R_Finger21',
+    'ValveBiped.Bip01_R_Finger22',
+    'ValveBiped.Bip01_R_Finger3',
+    'ValveBiped.Bip01_R_Finger31',
+    'ValveBiped.Bip01_R_Finger31',
+    'ValveBiped.Bip01_R_Finger32',
+    'ValveBiped.Bip01_R_Finger4',
+    'ValveBiped.Bip01_R_Finger41',
+    'ValveBiped.Bip01_R_Finger41',
+    'ValveBiped.Bip01_R_Finger42',
+    ]
+
+    return valvebipeds2
+
+def deltaanimtrick_armaturefilelocations():
+
+    base_dir = Path(__file__).parent / "storeditems" / "deltaanimtrick"
+    armaturelocations = {
+        "proportions": base_dir / "proportions.fbx",
+        "reference_female": base_dir / "reference_female.fbx",
+        "reference_male": base_dir / "reference_male.fbx"
+    }
+    return armaturelocations
+
 
 #----------------------------------------------------------------------
 # Commonly Used Functions
@@ -20,32 +172,46 @@ def load_json_dict_to_var(relativePath: str, jsonFileName) -> dict:
         data = json.load(f)
     
     return data
-#----------------------------------------------------------------------
-# QC Data Updates
-#----------------------------------------------------------------------
+def reselect_all(objectsToSelect:list, targetobj):
+    bpy.ops.object.select_all(action='DESELECT')
+    for o in objectsToSelect:
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = targetobj
 
-def qc_file_types():
-    qcDefaults = {
-        "PROP": {
-            "flags": ["$staticprop"],
-            "sections": ["$modelname", "$cdmaterials", "$bodygroup", "$sequence", "$collisionmodel"]
-        },
-        "CHARACTER": {
-            "flags": [],
-            "sections": ["$modelname", "$cdmaterials", "$bodygroup", "$sequence", "$collisionmodel", "$attachment"]
-        },
-        "NPC": {
-            "flags": [],
-            "sections": ["$modelname", "$cdmaterials", "$bodygroup", "$sequence", "$collisionmodel", "$surfaceprop"]
-        }
-    }
-    return qcDefaults
+def move_object_to_collection(objName:str, targetCollection:str):
+    print(targetCollection)
+    if targetCollection in bpy.data.collections:
+        targetCollection = bpy.data.collections[targetCollection]
+    else:
+        targetCollection = bpy.data.collections.new(targetCollection)
+        bpy.context.scene.collection.children.link(targetCollection)
 
-def qc_populate_typesEnum(qcDefaults):
-    enumItems = []
-    for dict in qcDefaults:
-        enumItems.append((dict,dict,f"Select if your QC is going to be: {dict}"))
-    return enumItems
+    obj = bpy.data.objects.get(objName)
+
+    if obj:
+        for coll in obj.users_collection:
+            coll.objects.unlink(obj)
+        
+        targetCollection.objects.link(obj)
+    else:
+            print(f"Object {objName} not found")
+
+def object_exists(name: str) -> bool:
+    doesExist = False
+    obj = bpy.data.objects.get(name)
+    if obj:
+        doesExist = True
+    return doesExist
+
+def importitemfromdict(name:str, collection:str, targetdict:dict):
+    print(f"IMPORT FROM DICT ------- collection = {collection}")
+    filepath: str = ""
+    try:
+        bpy.ops.import_scene.fbx(filepath=str(targetdict[name]))
+    except:
+        raise ImportError(f"Object {name} not found")
+    move_object_to_collection(name, collection)
+
 #----------------------------------------------------------------------
 # BoneLoc For QC $Attachment Storage
 #----------------------------------------------------------------------
@@ -75,16 +241,90 @@ class VMT_FilePathItem(bpy.types.PropertyGroup):
 # Animation Sequence Filepath Storage
 #----------------------------------------------------------------------
 
+def activity_item_items(self, context):
+    NONE_ENUM = ("NONE", "None", "Do not replace any activity")
 
+    toolbox = context.scene.toolBox
+    json_path = Path(toolbox.string_activityfilelocation)
+    if not json_path.is_file():
+        return [NONE_ENUM]
+
+    with json_path.open("r", encoding="utf-8") as f:
+        activities_data = json.load(f)
+
+    cat = self.enum_activity_category
+
+    if cat == "NONE" or cat not in activities_data:
+        return [NONE_ENUM]
+
+    items = [
+        (key, val[0], val[1])
+        for key, val in activities_data[cat].items()
+    ]
+
+    print("CATEGORY:", cat)
+    print("ITEMS:", items)
+
+    return [NONE_ENUM] + items if items else [NONE_ENUM]
+def activity_category_items(self, context):
+    NONE_ENUM = ("NONE", "None", "No activity category")
+
+    toolbox = context.scene.toolBox
+    json_path = Path(toolbox.string_activityfilelocation)
+    if not json_path.is_file():
+        return [NONE_ENUM]
+
+    with json_path.open("r", encoding="utf-8") as f:
+        activities_data = json.load(f)
+
+    model_type = toolbox.enum_qcGen_modelType
+    allowed = MODEL_TYPE_CATEGORY_MAP.get(model_type, [])
+
+    items = [
+        (cat, cat.replace("_", " "), f"Activity category: {cat}")
+        for cat in activities_data.keys()
+        if cat in allowed
+    ]
+
+    return [NONE_ENUM] + items if items else [NONE_ENUM]
 class SequenceItem(bpy.types.PropertyGroup):
+    originalName: bpy.props.StringProperty(
+        name="Original Name",
+        description="Original name of the sequence from the file"
+    ) # type: ignore
+
     sequenceName: bpy.props.StringProperty(
-        name="Sequence"
-    )  # type: ignore
+        name="Sequence Name",
+        description="User-submitted sequence name"
+    ) # type: ignore
 
     shouldExport: bpy.props.BoolProperty(
         name="Export",
         default=True
-    )  # type: ignore
+    ) # type: ignore
+
+    qcPath: bpy.props.StringProperty(
+        name="QC Path",
+        default=""
+    ) # type: ignore
+
+    customTag: bpy.props.StringProperty(
+        name="Tag",
+        default=""
+    ) # type: ignore
+
+    # Dynamic enums
+    enum_activity_category: bpy.props.EnumProperty(
+        name="Activity Category",
+        items=activity_category_items,
+        update=lambda self, context: setattr(self, "enum_activity", "NONE")
+    ) # type: ignore
+
+    enum_activity: bpy.props.EnumProperty(
+        name="Activity",
+        items=activity_item_items
+
+    ) # type: ignore
 
 class SequenceRigData(bpy.types.PropertyGroup):
     armatureName: bpy.props.StringProperty(
@@ -152,7 +392,9 @@ class QC_PrimaryData(bpy.types.PropertyGroup):
     attachpoint_bonenames: bpy.props.CollectionProperty(
         type=Armature_Name
     ) # type: ignore
-
+def clearscreen():
+    for i in range(5):
+        print("")
 def populate_filetypes_to_vtf(self, context):
     return [
         ("png", ".png", "The source file is a PNG image"),
@@ -165,6 +407,7 @@ def populate_filetypes_to_vtf(self, context):
         ("exr", ".exr", "The source file is an OpenEXR image"),
         ("vtf", ".vtf", "The source file is already a VTF file")
     ]
+
 
 #----------------------------------------------------------------------
 # Toolbox / VonData Pointer
@@ -245,6 +488,7 @@ class VonData(bpy.types.PropertyGroup):
 
      #---------------------------------------------------------------- QC Generator Stuff (SIMPLE)
 
+
     enum_qcGen_charAnimIncludes : bpy.props.EnumProperty(
         name="Include Char Anims?",
         description="For character and NPC models, do you want to include base animations, and if so what type?",
@@ -255,9 +499,28 @@ class VonData(bpy.types.PropertyGroup):
     enum_qcGen_modelType : bpy.props.EnumProperty(
         name="QC Type",
         description="Type of model you're making a QC for, is it a prop, character, npc?",
-        items=  qc_populate_typesEnum(qc_file_types()),
-        default = 0
+        items =  [
+            ('PROP', "Prop", "Standard physics prop"),
+            ('CHARACTER', "Character", "Player or character model"),
+            ('NPC', "Npc", "Non-player character model"),
+            ('VIEWMODEL', "Viewmodel", "First-person view model"),
+            ('WORLDMODEL', "Worldmodel", "Third-person world model"),
+        ],
+        default = "CHARACTER"
     ) # type: ignore
+    
+    #-----------------------------------------------------
+
+
+    #-----------------------------------------------------
+
+    string_activityfilelocation: bpy.props.StringProperty(
+        name="Activity JSON File",
+        default=str(Path(__file__).parent / "storeditems" / "qcgenerator" / "templates" / "activities.json"),
+    ) # type: ignore
+
+    
+
 
     string_qcGen_outputPath : bpy.props.StringProperty(
         name="Output Filepath",

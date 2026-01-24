@@ -7,6 +7,7 @@ Dependancies - (Addons whos features are relied upon by certain systems but whos
 
 Code Sections/Features - (Addons where code has been taken from and used, anything from small snippets or large sections/entire features.)
 1. Material_To_VTF : Graves(grvs) : Used for VMT Creation, exporting VTF files from .blend and so on : Files not avalible online, sent privately through DM's with permission to incoporate into addon freely.
+2. Blender Proportion Trick Script: sksh70 : https://github.com/sksh70/proportion_trick_script : Used for the delta anim trick section of the addon.
 
 Inspirations - 
 1. PBR Workflow - https://github.com/mushroom-guy/mwb-materials/blob/main/help.md

@@ -1,4 +1,4 @@
-import subprocess,bpy # type: ignore
+import subprocess # type: ignore
 from pathlib import Path
 
 def convert_file_with_structure(filePath: Path, exportFormat: str, inputFolder: Path, outputFolder: Path, vtfcmdExe: Path):
