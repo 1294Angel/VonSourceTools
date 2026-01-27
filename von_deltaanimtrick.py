@@ -5,153 +5,176 @@ from . import von_common
 
 
 
-
+# README -- All code from here is not mine, I've taken code from: https://github.com/sksh70/proportion_trick_script -- All I have done is modify the base code from 2.9 to create functionality and added some functions to automate certain steps.
 
 #-------------------------------------------------------------------------------------------------------------
-def delta_anim_trick_one(armature):
+
+
+
+def delta_anim_trick_one(sourceArmature: bpy.types.Object):
+    if 'proportions' not in bpy.data.objects:
+        raise Exception("No armature named 'proportions' found in the scene.")
+    targetArmature = bpy.data.objects['proportions']
+    if isinstance(sourceArmature, str):
+        bpy.data.objects[sourceArmature]
+
+    if targetArmature.type != 'ARMATURE':
+        raise TypeError(f"Target armature 'proportions' must be an ARMATURE, not {targetArmature.type}")
+    if sourceArmature.type != 'ARMATURE':
+        raise TypeError(f"Source armature must be an ARMATURE, not {sourceArmature.type}")
+
     valvebipeds = von_common.deltaanimtrick_valvebipeds_1()
+
     valvebipeds2 = von_common.deltaanimtrick_valvebipeds_2()
 
-    target = valvebipeds2[::2]
-    sub = valvebipeds2[1::2]
-
+    targetBones = valvebipeds2[::2]
+    subBones = valvebipeds2[1::2]
     d = OrderedDict()
-    for i, value in enumerate(sub):
-        key = 'var' + str(i)
-        d[key] = value 
-        
-    for i in valvebipeds:
-        objbone = bpy.data.objects['proportions'].pose.bones[i].constraints
-        
-        if armature.pose.bones.get(i) is not None:
-            objbone.new('COPY_LOCATION')
-            objbone['Copy Location'].target = armature
-            objbone['Copy Location'].subtarget = i
+    for idx, value in enumerate(subBones):
+        d[f'var{idx}'] = value
 
-    for j, k in enumerate(target):
-        objbone2 = bpy.data.objects['proportions'].pose.bones[k].constraints
-        
-        if armature.pose.bones.get(k) is not None:
-            objbone2.new('LOCKED_TRACK')
-            objbone2['Locked Track'].target = armature
-            objbone2['Locked Track'].subtarget = d["var"+str(j)]
-            objbone2['Locked Track'].track_axis = 'TRACK_X'
-            objbone2['Locked Track'].lock_axis = 'LOCK_Z'
-            objbone2.new('LOCKED_TRACK')
-            objbone2['Locked Track.001'].target = armature
-            objbone2['Locked Track.001'].subtarget = d["var"+str(j)]
-            objbone2['Locked Track.001'].track_axis = 'TRACK_X'
-            objbone2['Locked Track.001'].lock_axis = 'LOCK_Y'
+    for boneName in valvebipeds:
+        if boneName not in targetArmature.pose.bones:
+            continue
+        targetBone = targetArmature.pose.bones[boneName].constraints
 
-    #removes LOCKED_TRACK on parent if child constraint is empty			
-    for l in valvebipeds:
-        objbone3 = bpy.data.objects['proportions'].pose.bones[l]
-            
-        for child in objbone3.children:    
-            objbone4 = bpy.data.objects['proportions'].pose.bones[child.name].constraints
-            
-            if not objbone4.keys():
-                if objbone3.parent is not None:
-                    objbone5 = bpy.data.objects['proportions'].pose.bones[l].constraints
-                    
-                    for constraint in objbone5:
-                        if constraint.name != 'Copy Location':
-                            objbone5.remove(constraint)
-        
-            print(l+' is a parent of '+child.name+' with constraint: ',objbone3.constraints.keys())
-            
-    bpy.data.objects['proportions'].hide_set(False)
-    bpy.data.objects[armature.name].hide_set(True)
-    bpy.context.view_layer.objects.active = bpy.data.objects['proportions']
-    bpy.data.objects['proportions'].select_set(True)
+        if 'Copy Location' not in targetBone:
+            c = targetBone.new('COPY_LOCATION')
+            c.name = 'Copy Location'
+            c.target = sourceArmature
+            c.subtarget = boneName
+
+    for idx, boneName in enumerate(targetBones):
+        if boneName not in targetArmature.pose.bones:
+            continue
+        targetBone = targetArmature.pose.bones[boneName].constraints
+
+        c1 = targetBone.new('LOCKED_TRACK')
+        c1.name = 'Locked Track_XZ'
+        c1.target = sourceArmature
+        c1.subtarget = d[f'var{idx}']
+        c1.track_axis = 'TRACK_X'
+        c1.lock_axis = 'LOCK_Z'
+
+        c2 = targetBone.new('LOCKED_TRACK')
+        c2.name = 'Locked Track_XY'
+        c2.target = sourceArmature
+        c2.subtarget = d[f'var{idx}']
+        c2.track_axis = 'TRACK_X'
+        c2.lock_axis = 'LOCK_Y'
+
+    for boneName in valvebipeds:
+        if boneName not in targetArmature.pose.bones:
+            continue
+        parentBone = targetArmature.pose.bones[boneName]
+
+        for child in parentBone.children:
+            childConstraints = targetArmature.pose.bones[child.name].constraints
+            if not childConstraints.keys():
+                for constraint in parentBone.constraints:
+                    if constraint.type != 'COPY_LOCATION':
+                        parentBone.constraints.remove(constraint)
+
+    targetArmature.hide_set(False)
+    sourceArmature.hide_set(True)
+    bpy.context.view_layer.objects.active = targetArmature
+    targetArmature.select_set(True)
     bpy.ops.object.mode_set(mode='POSE')
 
+    print(f"'proportions' aligned to {sourceArmature.name} successfully!")
 
-def delta_anim_trick_two(arm):
-    arm2 = bpy.data.objects['proportions']
-    objects = bpy.context.scene.objects
+def delta_anim_trick_two(imported_name="gg", proportions_name="proportions"):
 
+    # --- Safety checks ---
+    objects = bpy.data.objects
+    if imported_name not in objects:
+        raise Exception(f"{imported_name} skeleton not found. Rename imported skeleton to '{imported_name}'.")
+    if proportions_name not in objects:
+        raise Exception(f"{proportions_name} object not found in scene.")
+
+    arm = objects[imported_name]
+    arm2 = objects[proportions_name]
+
+    if arm.type != 'ARMATURE':
+        raise Exception(f"{imported_name} must be an ARMATURE, not {arm.type}")
+    if arm2.type != 'ARMATURE':
+        raise Exception(f"{proportions_name} must be an ARMATURE, not {arm2.type}")
+
+    # --- Get ValveBiped bones list ---
     valvebipeds = von_common.deltaanimtrick_valvebipeds_1()
 
-    bn = []
-    pr = []
+    # --- Duplicate imported armature (data-only, no ops) ---
+    new_arm_data = arm.data.copy()
+    new_arm_obj = arm.copy()
+    new_arm_obj.data = new_arm_data
+    bpy.context.collection.objects.link(new_arm_obj)
 
-    bpy.data.objects['proportions'].hide_set(True)
-    bpy.data.objects[arm.name].hide_set(False)
-    bpy.context.view_layer.objects.active = bpy.data.objects[arm.name]
-    bpy.data.objects[arm.name].select_set(True)
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.duplicate()
-    bpy.ops.object.mode_set(mode='EDIT')
-    bpy.ops.armature.select_all(action='DESELECT')
-
-    for bone in bpy.context.object.data.edit_bones:
-        if bone.name in valvebipeds:
-            bone.select = True
-            bone.select_head = True
-            bone.select_tail = True
-
-    bpy.ops.armature.delete()
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.data.objects['proportions'].hide_set(False)
-    bpy.data.objects[arm.name].hide_set(True)
-    bpy.context.view_layer.objects.active = bpy.data.objects['proportions']
-    bpy.ops.object.mode_set(mode='OBJECT')
-    bpy.ops.object.select_all(action='SELECT')
-    bpy.ops.object.join()
+    # --- Enter edit mode on proportions armature ---
+    prev_mode:str = arm2.mode
+    bpy.context.view_layer.objects.active = arm2
+    arm2.select_set(True)
     bpy.ops.object.mode_set(mode='EDIT')
 
-    for bone in arm.data.bones:
+    arm2_eb = arm2.data.edit_bones
+    new_eb = new_arm_obj.data.edit_bones
+
+    # --- Merge non-ValveBiped bones ---
+    for bone in new_eb:
         if bone.name not in valvebipeds:
-            bn.append(bone.name)
+            # Copy bone into arm2
+            b = arm2_eb.new(bone.name)
+            b.head = bone.head.copy()
+            b.tail = bone.tail.copy()
+            b.roll = bone.roll
 
-    for bone in arm.data.bones:
-        if bone.name not in valvebipeds:
-            pr.append(getattr(bone.parent, 'name', 'ValveBiped.Bip01_Pelvis'))
+            # Parent the bone
+            pname = bone.parent.name if bone.parent else 'ValveBiped.Bip01_Pelvis'
+            if pname in arm2_eb:
+                b.parent = arm2_eb[pname]
 
-    for bone in bpy.context.object.data.edit_bones:
-        j = 0    
-        i = 0
-        while j < len(bn) and i < len(pr):
-            arm2.data.edit_bones[bn[i]].parent = arm2.data.edit_bones[pr[j]]
-            j += 1        
-            i += 1
-            
-    bpy.ops.object.mode_set(mode='OBJECT')
+    # --- Return proportions armature to previous mode ---
+    bpy.ops.object.mode_set(mode=prev_mode)
 
-    #add armature modifier
-    for ob in objects:
+    # --- Remove temporary duplicate armature ---
+    bpy.data.objects.remove(new_arm_obj, do_unlink=True)
+
+    # --- Add or update armature modifier on all meshes ---
+    for ob in bpy.context.scene.objects:
         if ob.type == 'MESH':
-            if ob.modifiers.values() == []:
-                ob.modifiers.new('Armature_01', 'ARMATURE')
-                ob.modifiers['Armature'].object = bpy.data.objects['proportions']
+            arm_mod = next((m for m in ob.modifiers if m.type == 'ARMATURE'), None)
+            if arm_mod:
+                arm_mod.object = arm2
             else:
-                for mods in ob.modifiers.values():
-                    if mods.name == 'Armature':
-                        ob.modifiers['Armature'].object = bpy.data.objects['proportions']
-                    else:
-                        ob.modifiers.new('Armature_01', 'ARMATURE')
-                        ob.modifiers['Armature'].object = bpy.data.objects['proportions']
+                mod = ob.modifiers.new('Armature', 'ARMATURE')
+                mod.object = arm2
+
+
+
+
+
+
+
+
+
+
     
 
 
 #-------------------------------------------------------------------------------------------------------------
 
 def toevertical(bone):
-    object = bpy.context.active_object
-    if object.mode == "EDIT":
-        raise Exception('Object Mode not Edit Mode.')
-    
-    bone.tail.x = bone.head.x
-    bone.tail.y = bone.head.y
+    if bone.name == "ValveBiped.Bip01_L_Toe0" or "ValveBiped.Bip01_L_Toe0":
+        print("---------Running Delta Anim Trick Toe Vertical Definition ----------")
+        print(bone.name)
+        bone.tail.x = bone.head.x
+        bone.tail.y = bone.head.y
 
 
 
 
-def clearposeboneconstraints(bone):
-    object = bpy.context.active_object
-    if object.mode == "POSE":
+def clearposeboneconstraints(bone, armature):
+    print("---------Running Delta Anim Trick Clear Pose Constraints Definition ----------")
+    if armature.mode != "POSE":
         raise Exception('Object Mode not Pose Mode.')
     for constraint in bone.constraints:
-        if constraint.type == "COPY_LOCATION":
-            bone.constraints.remove(constraint)
+        bone.constraints.remove(constraint)
