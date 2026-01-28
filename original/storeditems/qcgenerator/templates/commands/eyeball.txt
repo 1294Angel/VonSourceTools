@@ -1,0 +1,1 @@
+$eyeball "{eyeName}" "{boneName}" {x} {y} {z} "{irisMaterial}" {diameter}

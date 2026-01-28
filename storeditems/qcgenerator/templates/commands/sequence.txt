@@ -1,1 +1,0 @@
-$sequence "{sequenceName}" "{sequenceFile}" fps {fps}

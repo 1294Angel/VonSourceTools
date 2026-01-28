@@ -1,0 +1,1 @@
+$attachment "{attachmentName}" "{boneName}" {x} {y} {z} absolute

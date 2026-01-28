@@ -1,0 +1,85 @@
+import bpy #type: ignore
+
+# ============================================================================
+# Delta Animation Panels
+# ============================================================================
+
+class VON_PT_delta_animations(bpy.types.Panel):
+    """Delta Animation Trick panel"""
+    bl_idname = "VON_PT_delta_animations"
+    bl_label = "Delta Animation Trick Simple"
+    bl_parent_id = "VON_PT_parent"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Delta Animation Trick")
+        layout.operator("von.deltaanimtrick_full", icon='PLAY')
+
+
+class VON_PT_delta_advanced(bpy.types.Panel):
+    """Delta Animation Trick advanced settings panel"""
+    bl_idname = "VON_PT_delta_advanced"
+    bl_label = "Delta Anim Trick Advanced Settings"
+    bl_parent_id = "VON_PT_delta_animations"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        scene = context.scene
+        toolbox = scene.toolBox
+        layout = self.layout
+        
+        layout.label(text="Delta Animation Trick Advanced")
+        
+        # Settings
+        box = layout.box()
+        box.label(text="Settings -")
+        box.prop(toolbox, "float_deltaAnim_similarityThreshold")
+        
+        # Functions
+        box = layout.box()
+        box.label(text="Functions -")
+        box.operator("von.deltaanimtrick_importrequiredproperties")
+        box.operator("von.deltaanimtrick_partone", icon='PLAY')
+        
+        # Instructions
+        box = layout.box()
+        box.label(text="Step 1 - Check armature for grey bone")
+        box.label(text="        Select the grey bone then nearest green bone")
+        box.label(text="        Copy constraints to selected bones")
+        box.label(text="Step 2 - Select all bones then Ctrl+A then Apply pose as rest pose")
+        box.label(text="Step 3 - Change pivot to individual origins")
+        box.label(text="Step 4 - Rotate toe bones until straight | Copy rotation and apply to feet bone")
+        
+        box = layout.box()
+        box.operator("von.deltaanimtrick_parttwo", icon='PLAY')
+        box.label(text="Step 5 - Export your armature, proportions armature and both reference armatures")
+        box.label(text="Step 6 - Edit QC")
+
+
+# ============================================================================
+# Registration
+# ============================================================================
+
+CLASSES = [
+    # Delta animation panels
+    VON_PT_delta_animations,
+    VON_PT_delta_advanced,
+
+]
+
+
+def register():
+    for cls in CLASSES:
+        bpy.utils.register_class(cls)
+
+
+def unregister():
+    for cls in reversed(CLASSES):
+        bpy.utils.unregister_class(cls)
