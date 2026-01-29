@@ -1,0 +1,13 @@
+This is a file of backup credits incase the addon is distributed outside of the github so people can get proper credit for their great work!
+This addon is a mixture of my own work (Vona, https://github.com/1294Angel/VonSourceTools) and the people or addons underneath (Will use the addon name if I am unable to find the individual creator of each addon, and will provide links to git and official downloads for each addon I have borrowed code or systems from, as well as seperating those I have used for inspiration from those that I have use snippets or sections of code from!)
+
+
+Dependancies - (Addons whos features are relied upon by certain systems but whos code is not taken out of their addons and placed within my own):
+1. Blender Source Tools : Unknown Name: Used for export to SMD, required dependancy : https://github.com/Artfunkel/BlenderSourceTools | https://developer.valvesoftware.com/wiki/Blender_Source_Tools | http://steamreview.org/BlenderSourceTools/
+
+Code Sections/Features - (Addons where code has been taken from and used, anything from small snippets or large sections/entire features.)
+1. Material_To_VTF : Graves(grvs) : Used for VMT Creation, exporting VTF files from .blend and so on : Files not avalible online, sent privately through DM's with permission to incoporate into addon freely.
+2. Blender Proportion Trick Script: sksh70 : https://github.com/sksh70/proportion_trick_script : Used for the delta anim trick section of the addon.
+
+Inspirations - 
+1. PBR Workflow - https://github.com/mushroom-guy/mwb-materials/blob/main/help.md

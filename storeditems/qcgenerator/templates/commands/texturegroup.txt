@@ -1,0 +1,3 @@
+$texturegroup "{groupName}" {{
+{textureLines}
+}}

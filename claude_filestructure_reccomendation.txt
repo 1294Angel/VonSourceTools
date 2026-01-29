@@ -1,0 +1,48 @@
+I'm expanding as needed
+
+refactor/
+├── __init__.py              # Main addon entry point (bl_info, register/unregister)
+├── credits.txt              # Credits and attributions
+│
+├── core/                    # Business logic (no Blender registration)
+│   ├── __init__.py
+│   ├── collision.py         # Collision model generation
+│   ├── delta_anim.py        # Delta animation trick logic
+│   ├── qc_builder.py        # QC file generation
+│   ├── sequences.py         # Animation sequence handling
+│   ├── smd_export.py        # SMD batch export utilities
+│   ├── studiomdl.py         # StudioMDL compilation utilities
+│   └── vtf_conversion.py    # VTF batch conversion
+│
+├── data/                    # Static data and constants
+│   ├── __init__.py
+│   ├── constants.py         # Model type mappings, enums
+│   ├── paths.py             # Path utilities for addon data
+│   └── valvebiped_bones.py  # Valve biped skeleton definitions
+│
+├── operators/               # Blender operators
+│   ├── __init__.py
+│   ├── delta_anim_operators.py  # Delta animation operators
+│   ├── qc_operators.py          # QC generation operators
+│   ├── smd_operators.py         # SMD export operators
+│   ├── studiomdl_operators.py   # StudioMDL operators
+│   └── vtf_operators.py         # VTF conversion operators
+│
+├── properties/              # Blender property groups
+│   ├── __init__.py
+│   ├── qc_properties.py         # Base property groups (VMT, Bodygroup, etc.)
+│   ├── sequence_properties.py   # Animation sequence properties
+│   └── toolbox_properties.py    # Main toolbox & QC_PrimaryData
+│
+├── ui/                      # UI panels
+│   ├── __init__.py
+│   └── panels.py            # All panel definitions
+│
+├── utils/                   # Utility functions
+│   ├── __init__.py
+│   ├── blender_utils.py     # Blender-specific utilities
+│   └── file_utils.py        # File I/O utilities
+│
+└── storeditems/             # Data files (templates, FBX files, etc.)
+    ├── deltaanimtrick/      # Reference armature FBX files
+    └── qcgenerator/         # QC templates and JSON data
