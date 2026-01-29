@@ -20,7 +20,7 @@ class VON_PT_smd_export(bpy.types.Panel):
     
     def draw(self, context):
         scene = context.scene
-        toolbox = scene.toolBox
+        smd_export = scene.von_smd_export
         layout = self.layout
         
         layout.label(text="Collections:")
@@ -30,7 +30,7 @@ class VON_PT_smd_export(bpy.types.Panel):
         layout.separator()
         
         layout.label(text="Export:")
-        layout.prop(toolbox, "string_export_folder", text="Folder")
+        layout.prop(smd_export, "string_exportFolder", text="Folder")
         layout.operator("object.export_smd", icon='EXPORT')
 
 

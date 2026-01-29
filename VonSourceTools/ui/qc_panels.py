@@ -20,9 +20,9 @@ class VON_PT_qc_generator_main(bpy.types.Panel):
     
     def draw(self, context):
         scene = context.scene
-        toolbox = scene.toolBox
-        qc_type = toolbox.enum_qcGen_modelType
-        should_gen_collis = toolbox.bool_qcGen_generateCollission
+        qc_settings = scene.von_qc_settings
+        qc_type = qc_settings.enum_modelType
+        should_gen_collis = qc_settings.bool_generateCollision
         layout = self.layout
         
         # Generate buttons
@@ -36,26 +36,26 @@ class VON_PT_qc_generator_main(bpy.types.Panel):
         box.label(text="Model Settings:", icon='SETTINGS')
         
         col = box.column(align=True)
-        col.prop(toolbox, "enum_qcGen_modelType", text="Type")
-        col.prop(toolbox, "string_qcGen_mdlModelName", text="Model Name")
-        col.prop(toolbox, "string_qcGen_outputPath", text="Output Path")
+        col.prop(qc_settings, "enum_modelType", text="Type")
+        col.prop(qc_settings, "string_mdlModelName", text="Model Name")
+        col.prop(qc_settings, "string_outputPath", text="Output Path")
         
         # Scale and collision
         col.separator()
         row = col.row(align=True)
-        row.prop(toolbox, "int_qcGen_scale", text="Scale")
+        row.prop(qc_settings, "int_scale", text="Scale")
         
-        col.prop(toolbox, "bool_qcGen_generateCollission", text="Auto-Generate Collision")
+        col.prop(qc_settings, "bool_generateCollision", text="Auto-Generate Collision")
         
         if not should_gen_collis:
-            col.prop(toolbox, "string_qcGen_existingCollissionCollection", text="Collision Collection")
+            col.prop(qc_settings, "string_existingCollisionCollection", text="Collision Collection")
         
         # Surface prop box
         box = layout.box()
         box.label(text="Surface Property:", icon='MATERIAL')
         col = box.column(align=True)
-        col.prop(toolbox, "enum_surfaceprop_category", text="Category")
-        col.prop(toolbox, "enum_surfaceprop_item", text="Surface")
+        col.prop(qc_settings, "enum_surfaceprop_category", text="Category")
+        col.prop(qc_settings, "enum_surfaceprop_item", text="Surface")
 
 
 # ============================================================================
@@ -74,7 +74,7 @@ class VON_PT_qc_bodygroups(bpy.types.Panel):
     
     def draw(self, context):
         scene = context.scene
-        qc_data = scene.QC_PrimaryData
+        qc_data = scene.von_qc_data
         layout = self.layout
         
         # Refresh and count controls
@@ -113,7 +113,7 @@ class VON_PT_qc_materials(bpy.types.Panel):
     
     def draw(self, context):
         scene = context.scene
-        qc_data = scene.QC_PrimaryData
+        qc_data = scene.von_qc_data
         layout = self.layout
         
         row = layout.row()
@@ -142,18 +142,18 @@ class VON_PT_qc_animations(bpy.types.Panel):
     
     def draw(self, context):
         scene = context.scene
-        toolbox = scene.toolBox
-        qc_data = scene.QC_PrimaryData
+        qc_settings = scene.von_qc_settings
+        qc_data = scene.von_qc_data
         layout = self.layout
         
         # Collect sequences button
         layout.operator("von.collect_sequences", icon='ACTION', text="Collect from Selected Armatures")
         
         # Character animation includes
-        if toolbox.enum_qcGen_modelType in ('CHARACTER', 'NPC'):
+        if qc_settings.enum_modelType in ('CHARACTER', 'NPC'):
             box = layout.box()
             box.label(text="Include Base Animations:", icon='ARMATURE_DATA')
-            box.prop(toolbox, "enum_qcGen_charAnimIncludes", text="")
+            box.prop(qc_settings, "enum_charAnimIncludes", text="")
         
         # Display collected sequences
         if qc_data.sequence_objectdata:
@@ -195,15 +195,15 @@ class VON_PT_qc_advanced(bpy.types.Panel):
         from ..data.paths import get_studiomdl_path
         
         scene = context.scene
-        toolbox = scene.toolBox
+        qc_settings = scene.von_qc_settings
         layout = self.layout
         
         # Definebones settings
         box = layout.box()
         box.label(text="Definebones:", icon='BONE_DATA')
-        box.prop(toolbox, "bool_qcGen_shouldDefineBones", text="Generate definebones.qci")
+        box.prop(qc_settings, "bool_shouldDefineBones", text="Generate definebones.qci")
         
-        if toolbox.bool_qcGen_shouldDefineBones:
+        if qc_settings.bool_shouldDefineBones:
             box.operator("von.run_definebones_vondata", icon='ARMATURE_DATA', text="Run DefineBones")
         
         # StudioMDL settings
@@ -218,11 +218,11 @@ class VON_PT_qc_advanced(bpy.types.Panel):
         else:
             row = box.row()
             row.label(text="StudioMDL: Not found", icon='ERROR')
-            box.prop(toolbox, "string_studiomdl_filelocation", text="Path")
-            box.label(text="Place studiomdl.exe in addon's tools/studiomdl/ folder", icon='INFO')
+            box.prop(qc_settings, "string_studiomdlFileLocation", text="Path")
+            box.label(text="Place studiomdl.exe in addon's storeditems/external_software_dependancies/studiomdl/bin/ folder", icon='INFO')
         
-        box.prop(toolbox, "string_gmodexe_path", text="GMod Path")
-        box.prop(toolbox, "bool_studiomdl_verbose", text="Verbose Output")
+        box.prop(qc_settings, "string_gmodExePath", text="GMod Path")
+        box.prop(qc_settings, "bool_studiomdlVerbose", text="Verbose Output")
 
 
 # ============================================================================

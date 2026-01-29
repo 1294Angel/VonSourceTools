@@ -9,7 +9,6 @@ Organized by panel/dropdown menu:
 - smd_export_properties: Batch SMD Export panel
 - sequence_properties: Animation sequence sub-properties
 - scene_properties: Central scene property registration
-- toolbox_properties: Legacy backwards-compatible properties
 
 Registration order is important - base types must be registered
 before property groups that reference them.
@@ -21,9 +20,8 @@ from . import material_vtf_properties
 from . import image_converter_properties
 from . import smd_export_properties
 from . import scene_properties
-from . import toolbox_properties
 
-# Legacy imports for backwards compatibility
+# Public exports
 from .qc_generator_properties import (
     QC_PrimaryData,
     QCGeneratorSettings,
@@ -37,7 +35,6 @@ from .qc_generator_properties import (
     surfaceprop_category_items_callback,
     surfaceprop_item_items_callback,
 )
-from .toolbox_properties import VonToolbox
 from .delta_anim_properties import DeltaAnimSettings
 from .image_converter_properties import ImageConverterSettings
 from .smd_export_properties import SMDExportSettings
@@ -56,7 +53,6 @@ MODULES = [
     material_vtf_properties,    # Material to VTF Converter
     image_converter_properties, # Image Filetype Converter
     smd_export_properties,      # Batch SMD Export
-    toolbox_properties,         # Legacy properties (depends on above)
     scene_properties,           # Scene registration (must be last)
 ]
 

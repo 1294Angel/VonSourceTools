@@ -16,6 +16,17 @@ from .file_utils import (
     get_addon_directory,
     get_data_directory,
 )
+from .threading_utils import (
+    TaskStatus,
+    TaskResult,
+    BackgroundTask,
+    TaskManager,
+    task_manager,
+    run_in_background,
+    get_task_result,
+    is_task_finished,
+    cleanup_task,
+)
 
 __all__ = [
     # Blender utilities
@@ -31,4 +42,14 @@ __all__ = [
     'load_json_data',
     'get_addon_directory',
     'get_data_directory',
+    # Threading utilities
+    'TaskStatus',
+    'TaskResult',
+    'BackgroundTask',
+    'TaskManager',
+    'task_manager',
+    'run_in_background',
+    'get_task_result',
+    'is_task_finished',
+    'cleanup_task',
 ]

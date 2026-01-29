@@ -88,7 +88,7 @@ def surfaceprop_item_items_callback(self, context):
 
 def update_vmt_files(self, context):
     """Sync VMT file collection with num_vmt_files count."""
-    primary_data = context.scene.QC_PrimaryData
+    primary_data = context.scene.von_qc_data
     current_count = len(primary_data.vmt_filepaths)
     target_count = primary_data.num_vmt_files
     
@@ -102,7 +102,7 @@ def update_vmt_files(self, context):
 
 def sync_bodygroup_boxes(scene):
     """Ensure the bodygroup_boxes collection matches num_boxes."""
-    qc_data = scene.QC_PrimaryData
+    qc_data = scene.von_qc_data
     existing_collections = [col.name for col in bpy.data.collections]
     
     while len(qc_data.bodygroup_boxes) < qc_data.num_boxes:
@@ -240,6 +240,12 @@ def _add_sequence_collection():
 # QC Generator Settings Property Group
 # ============================================================================
 
+def _get_default_studiomdl_path():
+    """Get default studiomdl path for property default."""
+    from ..data.paths import get_default_studiomdl_path
+    return get_default_studiomdl_path()
+
+
 class QCGeneratorSettings(bpy.types.PropertyGroup):
     """
     Settings for the QC Generator panel.
@@ -272,14 +278,14 @@ class QCGeneratorSettings(bpy.types.PropertyGroup):
         name="Output Filepath",
         description="Filepath the created QC file will output to",
         default="",
-        subtype='FILE_PATH'
+        subtype='DIR_PATH'
     )  # type: ignore
     
     string_materialPath: StringProperty(
         name="Material Subfolder Filepath",
         description="Filepath after the materials folder where VMT files are located",
         default="",
-        subtype='FILE_PATH'
+        subtype='DIR_PATH'
     )  # type: ignore
     
     int_scale: IntProperty(

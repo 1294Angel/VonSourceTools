@@ -12,14 +12,15 @@ from pathlib import Path
 # ============================================================================
 
 # VTFCmd.exe location - Set this to your VTFCmd installation path
-# Default: looks in addon's "tools/vtfcmd" folder
+# Default: looks in addon's "storeditems/external_software_dependancies/vtfcmd" folder
 # You can change this to an absolute path if VTFCmd is installed elsewhere
 # Example: VTFCMD_PATH = Path("C:/Program Files/VTFEdit/VTFCmd.exe")
-VTFCMD_PATH = None  # Set to None to use addon's bundled version or UI path
+VTFCMD_PATH = Path(__file__).parent.parent / "tools" / "vtfcmd" / "VTFCmd.exe"
 
 # StudioMDL path - typically found in your Source SDK bin folder
+# Default: looks in addon's "storeditems/external_software_dependancies/studiomdl/bin" folder
 # Example: STUDIOMDL_PATH = Path("C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2/bin/studiomdl.exe")
-STUDIOMDL_PATH = None
+STUDIOMDL_PATH = Path(__file__).parent.parent / "tools" / "studiomdl" / "bin" / "studiomdl.exe"
 
 
 # ============================================================================
@@ -36,8 +37,13 @@ def get_data_directory() -> Path:
     return get_addon_directory() / "storeditems"
 
 
+def get_external_software_directory() -> Path:
+    """Get the addon's external software dependencies directory."""
+    return get_data_directory() / "external_software_dependancies"
+
+
 def get_tools_directory() -> Path:
-    """Get the addon's tools directory for bundled executables."""
+    """Get the addon's tools directory for bundled executables (legacy)."""
     return get_addon_directory() / "tools"
 
 
@@ -62,6 +68,30 @@ def get_commands_directory() -> Path:
 
 
 # ============================================================================
+# Default External Tool Paths
+# ============================================================================
+
+def get_default_vtfcmd_path() -> str:
+    """
+    Get the default path to VTFCmd.exe for UI property defaults.
+    
+    Returns:
+        String path to the expected VTFCmd location
+    """
+    return str(get_external_software_directory() / "vtfcmd" / "VTFCmd.exe")
+
+
+def get_default_studiomdl_path() -> str:
+    """
+    Get the default path to studiomdl.exe for UI property defaults.
+    
+    Returns:
+        String path to the expected studiomdl location
+    """
+    return str(get_external_software_directory() / "studiomdl" / "bin" / "studiomdl.exe")
+
+
+# ============================================================================
 # External Tool Path Functions
 # ============================================================================
 
@@ -71,8 +101,9 @@ def get_vtfcmd_path() -> Path:
     
     Resolution order:
     1. VTFCMD_PATH constant if set (at top of this file)
-    2. Bundled version in addon's tools/vtfcmd folder
-    3. Returns None if not found (UI path will be used)
+    2. Bundled version in addon's storeditems/external_software_dependancies/vtfcmd folder
+    3. Legacy location in addon's tools/vtfcmd folder
+    4. Returns None if not found (UI path will be used)
     
     Returns:
         Path to VTFCmd.exe or None if not found
@@ -83,10 +114,15 @@ def get_vtfcmd_path() -> Path:
         if vtfcmd.exists():
             return vtfcmd
     
-    # Check bundled version
-    bundled_vtfcmd = get_tools_directory() / "vtfcmd" / "VTFCmd.exe"
+    # Check new bundled version location
+    bundled_vtfcmd = get_external_software_directory() / "vtfcmd" / "VTFCmd.exe"
     if bundled_vtfcmd.exists():
         return bundled_vtfcmd
+    
+    # Check legacy location
+    legacy_vtfcmd = get_tools_directory() / "vtfcmd" / "VTFCmd.exe"
+    if legacy_vtfcmd.exists():
+        return legacy_vtfcmd
     
     # Not found - will need to use UI path
     return None
@@ -98,8 +134,9 @@ def get_studiomdl_path() -> Path:
     
     Resolution order:
     1. STUDIOMDL_PATH constant if set (at top of this file)
-    2. Bundled version in addon's tools/studiomdl folder
-    3. Returns None if not found (UI path will be used)
+    2. Bundled version in addon's storeditems/external_software_dependancies/studiomdl/bin folder
+    3. Legacy location in addon's tools/studiomdl folder
+    4. Returns None if not found (UI path will be used)
     
     Returns:
         Path to studiomdl.exe or None if not found
@@ -110,10 +147,15 @@ def get_studiomdl_path() -> Path:
         if studiomdl.exists():
             return studiomdl
     
-    # Check bundled version
-    bundled_studiomdl = get_tools_directory() / "studiomdl" / "studiomdl.exe"
+    # Check new bundled version location
+    bundled_studiomdl = get_external_software_directory() / "studiomdl" / "bin" / "studiomdl.exe"
     if bundled_studiomdl.exists():
         return bundled_studiomdl
+    
+    # Check legacy location
+    legacy_studiomdl = get_tools_directory() / "studiomdl" / "studiomdl.exe"
+    if legacy_studiomdl.exists():
+        return legacy_studiomdl
     
     # Not found - will need to use UI path
     return None

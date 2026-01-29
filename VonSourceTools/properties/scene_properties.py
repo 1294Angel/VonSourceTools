@@ -6,7 +6,7 @@ It serves as the central point for attaching settings from all panels
 to bpy.types.Scene.
 """
 import bpy  # type: ignore
-from bpy.props import PointerProperty, CollectionProperty, IntProperty
+from bpy.props import PointerProperty, IntProperty
 
 from .qc_generator_properties import QC_PrimaryData, QCGeneratorSettings
 from .delta_anim_properties import DeltaAnimSettings
@@ -22,8 +22,8 @@ def register_scene_properties():
     bpy.types.Scene.von_qc_data = PointerProperty(type=QC_PrimaryData)
     bpy.types.Scene.von_qc_settings = PointerProperty(type=QCGeneratorSettings)
     
-    # Add sequence data to QC data (done after registration)
-    # This is handled via CollectionProperty in QC_PrimaryData
+    # Also register with legacy name for backwards compatibility during transition
+    bpy.types.Scene.QC_PrimaryData = PointerProperty(type=QC_PrimaryData)
     
     # Delta Animation
     bpy.types.Scene.von_delta_anim = PointerProperty(type=DeltaAnimSettings)
@@ -43,6 +43,7 @@ def unregister_scene_properties():
     properties_to_remove = [
         'von_qc_data',
         'von_qc_settings',
+        'QC_PrimaryData',
         'von_delta_anim',
         'von_image_converter',
         'von_smd_export',

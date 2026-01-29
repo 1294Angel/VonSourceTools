@@ -103,7 +103,7 @@ def resolve_studiomdl_path(ui_path: str = "") -> Path:
 
 def run_definebones_from_context(context) -> tuple:
     """
-    Run definebones using settings from the toolbox.
+    Run definebones using settings from the QC settings.
     
     Args:
         context: Blender context
@@ -112,14 +112,14 @@ def run_definebones_from_context(context) -> tuple:
         tuple: (stdout, stderr) from the process
     """
     scene = context.scene
-    toolbox = scene.toolBox
+    qc_settings = scene.von_qc_settings
     
     # Resolve studiomdl path
-    studiomdl_path = resolve_studiomdl_path(toolbox.string_studiomdl_filelocation)
+    studiomdl_path = resolve_studiomdl_path(qc_settings.string_studiomdlFileLocation)
     
     return run_definebones(
         studiomdl_exe=studiomdl_path,
-        qc_path=toolbox.string_qcGen_outputPath,
-        gmod_exe=toolbox.string_gmodexe_path,
-        verbose=toolbox.bool_studiomdl_verbose
+        qc_path=qc_settings.string_outputPath,
+        gmod_exe=qc_settings.string_gmodExePath,
+        verbose=qc_settings.bool_studiomdlVerbose
     )

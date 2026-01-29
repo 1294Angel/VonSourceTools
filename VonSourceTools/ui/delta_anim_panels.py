@@ -20,7 +20,7 @@ class VON_PT_delta_animations(bpy.types.Panel):
     
     def draw(self, context):
         scene = context.scene
-        toolbox = scene.toolBox
+        delta_anim = scene.von_delta_anim
         layout = self.layout
         
         layout.label(text="Delta Animation Trick")
@@ -29,7 +29,7 @@ class VON_PT_delta_animations(bpy.types.Panel):
         # Similarity threshold
         box = layout.box()
         box.label(text="Settings:")
-        box.prop(toolbox, "float_deltaAnim_similarityThreshold", text="Similarity Threshold %")
+        box.prop(delta_anim, "float_similarityThreshold", text="Similarity Threshold %")
         
         # Simple one-click operation
         box = layout.box()

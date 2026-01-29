@@ -3,6 +3,7 @@ VTF (Valve Texture Format) batch conversion utilities.
 """
 import subprocess
 from pathlib import Path
+from typing import Tuple, List, Optional
 
 
 def convert_file_with_structure(
@@ -47,9 +48,71 @@ def convert_file_with_structure(
         return False
 
 
+def batch_convert_files(
+    vtfcmd_exe: str,
+    input_folder: str,
+    output_folder: str,
+    source_filetype: str,
+    target_filetype: str
+) -> dict:
+    """
+    Batch convert image files (thread-safe version).
+    
+    Args:
+        vtfcmd_exe: Path to VTFCmd.exe
+        input_folder: Input folder path
+        output_folder: Output folder path
+        source_filetype: Source file extension
+        target_filetype: Target file extension
+    
+    Returns:
+        dict with 'success', 'failed', and 'total' counts
+    """
+    vtfcmd_path = Path(vtfcmd_exe)
+    input_path = Path(input_folder)
+    output_path = Path(output_folder)
+    
+    if not input_path.exists():
+        return {
+            'success': 0,
+            'failed': 0,
+            'total': 0,
+            'error': f"Input folder '{input_folder}' does not exist."
+        }
+    
+    files = list(input_path.rglob(f"*.{source_filetype}"))
+    
+    if not files:
+        return {
+            'success': 0,
+            'failed': 0,
+            'total': 0,
+            'error': f"No *.{source_filetype} files found in '{input_folder}' folder."
+        }
+    
+    success_count = 0
+    failure_count = 0
+    
+    for file in files:
+        if convert_file_with_structure(
+            file, target_filetype, input_path, output_path, vtfcmd_path
+        ):
+            success_count += 1
+        else:
+            failure_count += 1
+    
+    print(f"Batch conversion completed! Success: {success_count}, Failed: {failure_count}")
+    return {
+        'success': success_count,
+        'failed': failure_count,
+        'total': len(files),
+        'error': None
+    }
+
+
 def batch_convert(context) -> tuple:
     """
-    Batch convert image files based on toolbox settings.
+    Batch convert image files based on image converter settings.
     
     Args:
         context: Blender context
@@ -57,14 +120,22 @@ def batch_convert(context) -> tuple:
     Returns:
         tuple: (success_count, failure_count)
     """
-    scene = context.scene
-    toolbox = scene.toolBox
+    from ..data.paths import get_vtfcmd_path
     
-    vtfcmd_exe = Path(toolbox.string_vtfbatch_vtfccmdexe)
-    input_folder = Path(toolbox.string_vtfbatch_inputfolder)
-    output_folder = Path(toolbox.string_vtfbatch_outputfolder)
-    source_filetype = toolbox.enum_vtfbatch_sourcefiletype
-    target_filetype = toolbox.enum_vtfbatch_targetfiletype
+    scene = context.scene
+    img_converter = scene.von_image_converter
+    
+    # Try bundled VTFCmd first
+    bundled_vtfcmd = get_vtfcmd_path()
+    if bundled_vtfcmd is not None:
+        vtfcmd_exe = bundled_vtfcmd
+    else:
+        vtfcmd_exe = Path(img_converter.string_vtfcmdPath)
+    
+    input_folder = Path(img_converter.string_inputFolder)
+    output_folder = Path(img_converter.string_outputFolder)
+    source_filetype = img_converter.enum_sourceFiletype
+    target_filetype = img_converter.enum_targetFiletype
     
     if not input_folder.exists():
         print(f"Input folder '{input_folder}' does not exist.")

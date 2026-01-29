@@ -57,13 +57,13 @@ def collect_sequences_from_selected(context) -> dict:
 
 def populate_sequence_data(context) -> None:
     """
-    Populate the scene's QC_PrimaryData with sequence information
+    Populate the scene's von_qc_data with sequence information
     from selected armatures.
     
     Args:
         context: Blender context
     """
-    primary_data = context.scene.QC_PrimaryData
+    primary_data = context.scene.von_qc_data
     primary_data.sequence_objectdata.clear()
     
     for obj in context.selected_objects:

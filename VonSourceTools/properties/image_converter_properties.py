@@ -12,6 +12,12 @@ from bpy.props import StringProperty, EnumProperty
 # Helper Functions
 # ============================================================================
 
+def _get_default_vtfcmd_path():
+    """Get default VTFCmd path for property default."""
+    from ..data.paths import get_default_vtfcmd_path
+    return get_default_vtfcmd_path()
+
+
 def populate_filetypes(self, context):
     """Get supported file types for conversion."""
     return [
@@ -47,7 +53,7 @@ class ImageConverterSettings(bpy.types.PropertyGroup):
     Used to configure batch image format conversion.
     """
     
-    string_vtfcmdExe: StringProperty(
+    string_vtfcmdPath: StringProperty(
         name="VTFCmd Executable",
         description="Path to VTFCmd.exe (for VTF conversions)",
         default="",

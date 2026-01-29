@@ -43,8 +43,8 @@ class VONSMD_OT_export(bpy.types.Operator):
     
     def execute(self, context):
         scene = context.scene
-        toolbox = scene.toolBox
-        export_folder = toolbox.string_export_folder
+        smd_export = scene.von_smd_export
+        export_folder = smd_export.string_exportFolder
         
         if not os.path.exists(export_folder):
             os.makedirs(export_folder)

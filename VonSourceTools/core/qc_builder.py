@@ -357,27 +357,33 @@ def gather_qc_data_from_scene(context) -> QCData:
         QCData object with all gathered data
     """
     scene = context.scene
-    toolbox = scene.toolBox
-    qc_primary = scene.QC_PrimaryData
+    qc_settings = scene.von_qc_settings
+    qc_primary = scene.von_qc_data
     
     qc_data = QCData()
     
     # Basic info
-    qc_data.model_type = toolbox.enum_qcGen_modelType
-    qc_data.model_name = toolbox.string_qcGen_mdlModelName
-    qc_data.output_path = toolbox.string_qcGen_outputPath
+    qc_data.model_type = qc_settings.enum_modelType
+    qc_data.model_name = qc_settings.string_mdlModelName
+    qc_data.output_path = qc_settings.string_outputPath
+    
+    # Ensure output path ends with model name
+    if qc_data.output_path and qc_data.model_name:
+        output_path = qc_data.output_path.rstrip('/\\')
+        if not output_path.lower().endswith('.qc'):
+            qc_data.output_path = os.path.join(output_path, f"{qc_data.model_name}.qc")
     
     # Scale
-    qc_data.scale = toolbox.int_qcGen_scale
+    qc_data.scale = qc_settings.int_scale
     
     # Surface property
-    surfaceprop = getattr(toolbox, 'enum_surfaceprop_item', '')
+    surfaceprop = getattr(qc_settings, 'enum_surfaceprop_item', '')
     if surfaceprop and surfaceprop != 'NONE':
         qc_data.surfaceprop = surfaceprop
     
     # Collision
-    qc_data.generate_collision = toolbox.bool_qcGen_generateCollission
-    qc_data.collision_collection = toolbox.string_qcGen_existingCollissionCollection
+    qc_data.generate_collision = qc_settings.bool_generateCollision
+    qc_data.collision_collection = qc_settings.string_existingCollisionCollection
     
     # Material paths (cdmaterials)
     qc_data.material_paths = []
@@ -419,8 +425,8 @@ def gather_qc_data_from_scene(context) -> QCData:
                 qc_data.sequences.append(seq_dict)
     
     # Character-specific settings
-    qc_data.include_default_anims = toolbox.enum_qcGen_charAnimIncludes
-    qc_data.definebones = toolbox.bool_qcGen_shouldDefineBones
+    qc_data.include_default_anims = qc_settings.enum_charAnimIncludes
+    qc_data.definebones = qc_settings.bool_shouldDefineBones
     
     # Static prop flag for PROP and WORLDMODEL
     if qc_data.model_type in ("PROP", "WORLDMODEL"):
@@ -540,7 +546,7 @@ def generate_qc_file(context) -> str:
 
 def get_all_vmt_filepaths() -> list:
     """
-    Get all VMT file paths from the scene's QC_PrimaryData.
+    Get all VMT file paths from the scene's von_qc_data.
     
     Returns:
         list: List of VMT file path strings
@@ -549,14 +555,14 @@ def get_all_vmt_filepaths() -> list:
         return []
     
     scene = bpy.context.scene
-    qc_data = scene.QC_PrimaryData
+    qc_data = scene.von_qc_data
     filepaths = [item.filepath for item in qc_data.vmt_filepaths if item.filepath]
     return filepaths
 
 
 def gather_bodygroup_data() -> dict:
     """
-    Collect bodygroup data from the scene's QC_PrimaryData.
+    Collect bodygroup data from the scene's von_qc_data.
     
     Returns:
         dict: Dictionary mapping bodygroup names to lists of enabled collection names.
@@ -564,7 +570,7 @@ def gather_bodygroup_data() -> dict:
     if bpy is None:
         return {}
     
-    qc_primary_data = bpy.context.scene.QC_PrimaryData
+    qc_primary_data = bpy.context.scene.von_qc_data
     bodygroups = {}
     
     for box in qc_primary_data.bodygroup_boxes:
@@ -590,7 +596,7 @@ def gather_sequence_export_data(context) -> dict:
     Returns:
         dict: Nested dictionary of sequence data
     """
-    primary_data = context.scene.QC_PrimaryData
+    primary_data = context.scene.von_qc_data
     export_data = {}
     
     def clean_enum(value):
@@ -624,7 +630,7 @@ def get_sequences_dict(primary_data) -> dict:
     Get a simplified dictionary of sequences per rig.
     
     Args:
-        primary_data: The QC_PrimaryData property group
+        primary_data: The von_qc_data property group
     
     Returns:
         dict: Format {RigName: [SequenceName, ...], ...}
@@ -633,7 +639,7 @@ def get_sequences_dict(primary_data) -> dict:
         return {}
     
     sequences_dict = {}
-    primary_data = bpy.context.scene.QC_PrimaryData
+    primary_data = bpy.context.scene.von_qc_data
     
     for rig_data in primary_data.sequence_objectdata:
         rig_name = rig_data.armatureName

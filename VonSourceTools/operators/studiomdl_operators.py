@@ -13,9 +13,6 @@ class VONSTUDIOMDL_OT_run_definebones(bpy.types.Operator):
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
-        scene = context.scene
-        toolbox = scene.toolBox
-        
         try:
             stdout, stderr = run_definebones_from_context(context)
             self.report({'INFO'}, "Define Bones completed. Check console for output.")

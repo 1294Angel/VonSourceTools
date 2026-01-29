@@ -92,7 +92,7 @@ class VONANIM_OT_full(bpy.types.Operator):
     def execute(self, context):
         print("----- Running Delta Anim Trick FULL -----")
         scene = context.scene
-        toolbox = scene.toolBox
+        delta_anim = scene.von_delta_anim
         
         failures = []
         has_valvebiped = True
@@ -106,7 +106,7 @@ class VONANIM_OT_full(bpy.types.Operator):
         first_obj = armatures[0]
         
         # Validate armatures
-        threshold = toolbox.float_deltaAnim_similarityThreshold
+        threshold = delta_anim.float_similarityThreshold
         for armature in armatures:
             if not validate_valvebiped_similarity(armature, threshold):
                 has_valvebiped = False

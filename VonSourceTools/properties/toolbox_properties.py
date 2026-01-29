@@ -1,18 +1,6 @@
-"""
-Legacy toolbox properties for backwards compatibility.
 
-This module provides the old VonToolbox and QC_PrimaryData classes
-that wrap the new organized property system. This ensures existing
-code and UI panels continue to work while we transition to the new system.
-
-NEW CODE SHOULD USE:
-- von_qc_settings for QC Generator settings
-- von_qc_data for QC primary data
-- von_delta_anim for Delta Animation settings
-- von_image_converter for Image Converter settings
-- von_smd_export for SMD Export settings
-"""
 import bpy  # type: ignore
+from pathlib import Path
 from bpy.props import (
     StringProperty, BoolProperty, IntProperty, FloatProperty,
     EnumProperty, CollectionProperty, PointerProperty
@@ -94,7 +82,7 @@ class VonToolbox(bpy.types.PropertyGroup):
     string_studiomdl_filelocation: StringProperty(
         name="StudioMDL File Location",
         description="Path to studiomdl.exe",
-        default="",
+        default=str(Path(__file__).parent.parent / "storeditems" / "external_software_dependancies" / "studiomdl" / "bin" / "studiomdl.exe"),
         subtype='FILE_PATH',
     )  # type: ignore
     
