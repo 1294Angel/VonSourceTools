@@ -6,7 +6,7 @@ import bpy # type: ignore
 bl_info = {
     "name": "Vona's Blender Source Tools",
     "author": "Vona",
-    "version": (0, 1, 0),  # Change from (0, 0, 2)
+    "version": (1, 0, 0),
     "blender": (4, 2, 0),
     "location": "View3D > Sidebar > VonSourceTools",
     "description": "Streamline Blender to Source/Garry's Mod workflow with QC generation and delta animation tricks",
