@@ -15,12 +15,12 @@ from pathlib import Path
 # Default: looks in addon's "storeditems/external_software_dependancies/vtfcmd" folder
 # You can change this to an absolute path if VTFCmd is installed elsewhere
 # Example: VTFCMD_PATH = Path("C:/Program Files/VTFEdit/VTFCmd.exe")
-VTFCMD_PATH = Path(__file__).parent.parent / "tools" / "vtfcmd" / "VTFCmd.exe"
+VTFCMD_PATH = Path(__file__).parent.parent / "external_software_dependancies" / "vtfcmd" / "VTFCmd.exe"
 
 # StudioMDL path - typically found in your Source SDK bin folder
 # Default: looks in addon's "storeditems/external_software_dependancies/studiomdl/bin" folder
 # Example: STUDIOMDL_PATH = Path("C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2/bin/studiomdl.exe")
-STUDIOMDL_PATH = Path(__file__).parent.parent / "tools" / "studiomdl" / "bin" / "studiomdl.exe"
+STUDIOMDL_PATH = Path(__file__).parent.parent / "external_software_dependancies" / "studiomdl" / "bin" / "studiomdl.exe"
 
 
 # ============================================================================
