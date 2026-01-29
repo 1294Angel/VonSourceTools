@@ -1,4 +1,4 @@
-$collisionmodel "{collisionFile}" {
+$collisionmodel "{collisionFile}" {{
     $mass {mass}
     ${isconvex}
-}
+}}

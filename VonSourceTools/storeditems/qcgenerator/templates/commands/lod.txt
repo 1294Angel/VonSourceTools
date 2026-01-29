@@ -1,3 +1,3 @@
-$lod {distance} {
+$lod {distance} {{
     replacemodel "{lodBase}" "{lodModel}"
-}
+}}
