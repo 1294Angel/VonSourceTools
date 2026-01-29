@@ -1,0 +1,57 @@
+"""
+Image Converter Panel for VonSourceTools.
+"""
+import bpy  # type: ignore
+
+
+# ============================================================================
+# Image Converter Panel
+# ============================================================================
+
+class VON_PT_image_converter(bpy.types.Panel):
+    """Image filetype converter panel"""
+    bl_idname = "VON_PT_image_converter"
+    bl_label = "Image Filetype Converter"
+    bl_parent_id = "VON_PT_parent"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = 'VonSourceTools'
+    bl_options = {'DEFAULT_CLOSED'}
+    
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        toolbox = scene.toolBox
+        
+        layout.label(text="Image Filetype Converter")
+        layout.label(text="Blender might hang if converting to or from vtf")
+        layout.label(text="May take a few minutes")
+        
+        row = layout.row()
+        row.prop(toolbox, "string_vtfbatch_inputfolder", text="Input Folder")
+        row.prop(toolbox, "string_vtfbatch_outputfolder", text="Output Folder")
+        
+        row = layout.row()
+        row.prop(toolbox, "enum_vtfbatch_sourcefiletype", text="Source Filetype")
+        row.prop(toolbox, "enum_vtfbatch_targetfiletype", text="Target Filetype")
+        
+        layout.operator("von.batchconvertfiletypes", text="Run Conversion")
+
+
+# ============================================================================
+# Registration
+# ============================================================================
+
+CLASSES = [
+    VON_PT_image_converter,
+]
+
+
+def register():
+    for cls in CLASSES:
+        bpy.utils.register_class(cls)
+
+
+def unregister():
+    for cls in reversed(CLASSES):
+        bpy.utils.unregister_class(cls)

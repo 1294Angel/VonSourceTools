@@ -1,128 +1,52 @@
 """
-Main toolbox property groups for VonSourceTools.
+Legacy toolbox properties for backwards compatibility.
+
+This module provides the old VonToolbox and QC_PrimaryData classes
+that wrap the new organized property system. This ensures existing
+code and UI panels continue to work while we transition to the new system.
+
+NEW CODE SHOULD USE:
+- von_qc_settings for QC Generator settings
+- von_qc_data for QC primary data
+- von_delta_anim for Delta Animation settings
+- von_image_converter for Image Converter settings
+- von_smd_export for SMD Export settings
 """
-import json
 import bpy  # type: ignore
 from bpy.props import (
     StringProperty, BoolProperty, IntProperty, FloatProperty,
     EnumProperty, CollectionProperty, PointerProperty
 )
-from pathlib import Path
 
-from .qc_properties import (
-    VMT_FilePathItem, BodygroupBox, ArmatureName
+# Import from new modules for re-export
+from .qc_generator_properties import (
+    QC_PrimaryData,
+    VMT_FilePathItem,
+    BodygroupBox,
+    BodygroupCollectionItem,
+    ArmatureName,
+    BoneNameForAttach,
+    sync_bodygroup_boxes,
+    get_bodygroup_by_name,
+    update_vmt_files,
+    surfaceprop_category_items_callback,
+    surfaceprop_item_items_callback,
 )
-from .sequence_properties import SequenceRigData
+from .image_converter_properties import populate_filetypes
 
 
 # ============================================================================
-# Helper Functions
-# ============================================================================
-
-def update_vmt_files(self, context):
-    """Sync VMT file collection with num_vmt_files count."""
-    primary_data = context.scene.QC_PrimaryData
-    current_count = len(primary_data.vmt_filepaths)
-    target_count = primary_data.num_vmt_files
-    
-    if target_count > current_count:
-        for _ in range(target_count - current_count):
-            primary_data.vmt_filepaths.add()
-    elif target_count < current_count:
-        for _ in range(current_count - target_count):
-            primary_data.vmt_filepaths.remove(len(primary_data.vmt_filepaths) - 1)
-
-
-def populate_filetypes_to_vtf(self, context):
-    """Get supported file types for VTF conversion."""
-    return [
-        ("png", ".png", "The source file is a PNG image"),
-        ("jpg", ".jpg", "The source file is a JPG/JPEG image"),
-        ("jpeg", ".jpeg", "The source file is a JPEG image"),
-        ("tga", ".tga", "The source file is a TGA image"),
-        ("bmp", ".bmp", "The source file is a BMP image"),
-        ("psd", ".psd", "The source file is a Photoshop PSD file"),
-        ("hdr", ".hdr", "The source file is a HDR image"),
-        ("exr", ".exr", "The source file is an OpenEXR image"),
-        ("vtf", ".vtf", "The source file is already a VTF file")
-    ]
-
-
-def sync_bodygroup_boxes(scene):
-    """Ensure the bodygroup_boxes collection matches num_boxes."""
-    qc_data = scene.QC_PrimaryData
-    existing_collections = [col.name for col in bpy.data.collections]
-    
-    while len(qc_data.bodygroup_boxes) < qc_data.num_boxes:
-        qc_data.bodygroup_boxes.add()
-    
-    while len(qc_data.bodygroup_boxes) > qc_data.num_boxes:
-        qc_data.bodygroup_boxes.remove(len(qc_data.bodygroup_boxes) - 1)
-    
-    for box in qc_data.bodygroup_boxes:
-        existing_names = {item.name for item in box.collections}
-        for name in existing_collections:
-            if name not in existing_names:
-                item = box.collections.add()
-                item.name = name
-                item.enabled = False
-
-
-def get_bodygroup_by_name(qc_data, box_name):
-    """Find a bodygroup by name."""
-    for box in qc_data.bodygroup_boxes:
-        if box.name == box_name:
-            return box
-    return None
-
-
-# ============================================================================
-# Primary Data Property Group
-# ============================================================================
-
-class QC_PrimaryData(bpy.types.PropertyGroup):
-    """Main QC generation data container."""
-    
-    # Bodygroup settings
-    num_boxes: IntProperty(
-        name="Number of Bodygroups",
-        default=0,
-        min=0
-    )  # type: ignore
-    
-    bodygroup_boxes: CollectionProperty(
-        type=BodygroupBox
-    )  # type: ignore
-    
-    # VMT settings
-    num_vmt_files: IntProperty(
-        name="Number of VMTs",
-        default=0,
-        min=0,
-        update=update_vmt_files
-    )  # type: ignore
-    
-    vmt_filepaths: CollectionProperty(
-        type=VMT_FilePathItem
-    )  # type: ignore
-    
-    # Sequence data
-    sequence_objectdata: CollectionProperty(
-        type=SequenceRigData
-    )  # type: ignore
-    
-    # Attachment points
-    attachpoint_bonenames: CollectionProperty(
-        type=ArmatureName
-    )  # type: ignore
-
-
-# ============================================================================
-# Main Toolbox Property Group
+# Legacy VonToolbox Property Group
 # ============================================================================
 
 class VonToolbox(bpy.types.PropertyGroup):
-    """Main toolbox settings for VonSourceTools."""
+    """
+    Legacy main toolbox settings for VonSourceTools.
+    
+    This class maintains backwards compatibility with existing UI panels
+    and operators. New code should access properties through the new
+    organized scene properties (von_qc_settings, von_delta_anim, etc.).
+    """
     
     # -------------------------------------------------------------------------
     # Delta Animation Settings
@@ -136,54 +60,29 @@ class VonToolbox(bpy.types.PropertyGroup):
     )  # type: ignore
     
     # -------------------------------------------------------------------------
-    # Surface Prop Settings
+    # Surface Prop Settings (QC Generator)
     # -------------------------------------------------------------------------
     string_surfacepropfilelocation: StringProperty(
         name="SurfaceProp File Location",
-        description="Path to the surfaceprops.json file",
+        description="Path to the surfaceprops.json file (leave empty to use bundled)",
         default="",
         subtype='FILE_PATH',
     )  # type: ignore
     
-    def surfaceprop_category_items(self, context):
-        json_path = Path(self.string_surfacepropfilelocation)
-        if not json_path.is_file():
-            return []
-        with json_path.open("r", encoding="utf-8") as f:
-            surfaceprops_data = json.load(f)
-        return [
-            (cat, cat.replace("_", " "), f"Select surfaceprop category: {cat}")
-            for cat in surfaceprops_data.keys()
-        ]
-    
-    def surfaceprop_item_items(self, context):
-        json_path = Path(self.string_surfacepropfilelocation)
-        if not json_path.is_file():
-            return []
-        with json_path.open("r", encoding="utf-8") as f:
-            surfaceprops_data = json.load(f)
-        cat = getattr(self, "enum_surfaceprop_category", None)
-        if not cat or cat not in surfaceprops_data:
-            return []
-        return [
-            (key, val[0], val[1])
-            for key, val in surfaceprops_data[cat].items()
-        ]
-    
     enum_surfaceprop_category: EnumProperty(
         name="SurfaceProp Category",
         description="Select surfaceprop category",
-        items=surfaceprop_category_items
+        items=surfaceprop_category_items_callback
     )  # type: ignore
     
     enum_surfaceprop_item: EnumProperty(
         name="SurfaceProp",
         description="Select surfaceprop item within category",
-        items=surfaceprop_item_items
+        items=surfaceprop_item_items_callback
     )  # type: ignore
     
     # -------------------------------------------------------------------------
-    # StudioMDL / DefineBones Settings
+    # StudioMDL / DefineBones Settings (QC Generator)
     # -------------------------------------------------------------------------
     string_gmodexe_path: StringProperty(
         name="Gmod.Exe Path",
@@ -302,7 +201,7 @@ class VonToolbox(bpy.types.PropertyGroup):
     )  # type: ignore
     
     # -------------------------------------------------------------------------
-    # VTF Batch Conversion Settings
+    # VTF Batch Conversion Settings (Image Converter)
     # -------------------------------------------------------------------------
     string_vtfbatch_vtfccmdexe: StringProperty(
         name="VTFCmd Executable",
@@ -328,14 +227,14 @@ class VonToolbox(bpy.types.PropertyGroup):
     enum_vtfbatch_sourcefiletype: EnumProperty(
         name="Source Filetype",
         description="Choose the source file type for conversion",
-        items=populate_filetypes_to_vtf,
+        items=populate_filetypes,
         default=0
     )  # type: ignore
     
     def populate_target_filetypes(self, context):
         source = context.scene.toolBox.enum_vtfbatch_sourcefiletype
         return [
-            item for item in populate_filetypes_to_vtf(self, context)
+            item for item in populate_filetypes(self, context)
             if item[0] != source
         ]
     
@@ -352,25 +251,27 @@ class VonToolbox(bpy.types.PropertyGroup):
 # ============================================================================
 
 CLASSES = [
-    QC_PrimaryData,
     VonToolbox,
 ]
 
 
 def register():
-    """Register all property groups in this module."""
+    """Register legacy property groups."""
     for cls in CLASSES:
         bpy.utils.register_class(cls)
     
-    # Attach to scene
+    # Attach legacy properties to scene
     bpy.types.Scene.QC_PrimaryData = PointerProperty(type=QC_PrimaryData)
     bpy.types.Scene.toolBox = PointerProperty(type=VonToolbox)
 
 
 def unregister():
-    """Unregister all property groups in this module."""
-    del bpy.types.Scene.QC_PrimaryData
-    del bpy.types.Scene.toolBox
+    """Unregister legacy property groups."""
+    # Remove scene properties
+    if hasattr(bpy.types.Scene, 'QC_PrimaryData'):
+        del bpy.types.Scene.QC_PrimaryData
+    if hasattr(bpy.types.Scene, 'toolBox'):
+        del bpy.types.Scene.toolBox
     
     for cls in reversed(CLASSES):
         bpy.utils.unregister_class(cls)

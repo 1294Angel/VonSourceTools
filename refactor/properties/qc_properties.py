@@ -2,7 +2,7 @@
 Property groups for QC generation data.
 """
 import bpy  # type: ignore
-from bpy.props import ( # type: ignore
+from bpy.props import (
     StringProperty, BoolProperty, IntProperty,
     CollectionProperty, PointerProperty
 )

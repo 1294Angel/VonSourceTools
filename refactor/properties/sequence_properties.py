@@ -1,5 +1,7 @@
 """
-Property groups for animation sequence data.
+Properties for animation sequence data.
+
+Used by the QC Generator for managing animation sequences.
 """
 import json
 import bpy  # type: ignore
@@ -12,18 +14,70 @@ from pathlib import Path
 from ..data.constants import MODEL_TYPE_CATEGORY_MAP, NONE_ENUM
 
 
+# ============================================================================
+# Helper Functions
+# ============================================================================
+
+def _get_bundled_activities_path():
+    """Get the bundled activities.json path."""
+    this_file = Path(__file__).resolve()
+    addon_root = this_file.parent.parent  # properties -> refactor
+    return addon_root / "storeditems" / "qcgenerator" / "templates" / "activities.json"
+
+
+def _load_activities_data(custom_path=""):
+    """Load activities data from JSON file."""
+    # Try custom path first
+    if custom_path:
+        custom = Path(custom_path)
+        if custom.is_file():
+            try:
+                with custom.open("r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+    
+    # Fall back to bundled
+    bundled = _get_bundled_activities_path()
+    if bundled.is_file():
+        try:
+            with bundled.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    
+    return None
+
+
+def _get_model_type(context):
+    """Get the current model type from scene settings."""
+    # Try new property names first, then fall back to legacy
+    if hasattr(context.scene, 'von_qc_settings'):
+        return getattr(context.scene.von_qc_settings, 'enum_modelType', 'CHARACTER')
+    elif hasattr(context.scene, 'toolBox'):
+        return getattr(context.scene.toolBox, 'enum_qcGen_modelType', 'CHARACTER')
+    return 'CHARACTER'
+
+
+def _get_activity_file_path(context):
+    """Get the activity file path from scene settings."""
+    # Try new property names first, then fall back to legacy
+    if hasattr(context.scene, 'von_qc_settings'):
+        return getattr(context.scene.von_qc_settings, 'string_activityFileLocation', '')
+    elif hasattr(context.scene, 'toolBox'):
+        return getattr(context.scene.toolBox, 'string_activityfilelocation', '')
+    return ''
+
+
 def activity_item_items(self, context):
     """Generate activity items based on selected category."""
     none_enum = ("NONE", "None", "Do not replace any activity")
     
-    toolbox = context.scene.toolBox
-    json_path = Path(toolbox.string_activityfilelocation)
+    custom_path = _get_activity_file_path(context)
+    activities_data = _load_activities_data(custom_path)
     
-    if not json_path.is_file():
+    if not activities_data:
         return [none_enum]
-    
-    with json_path.open("r", encoding="utf-8") as f:
-        activities_data = json.load(f)
     
     cat = self.enum_activity_category
     
@@ -42,16 +96,13 @@ def activity_category_items(self, context):
     """Generate activity category items based on model type."""
     none_enum = ("NONE", "None", "No activity category")
     
-    toolbox = context.scene.toolBox
-    json_path = Path(toolbox.string_activityfilelocation)
+    custom_path = _get_activity_file_path(context)
+    activities_data = _load_activities_data(custom_path)
     
-    if not json_path.is_file():
+    if not activities_data:
         return [none_enum]
     
-    with json_path.open("r", encoding="utf-8") as f:
-        activities_data = json.load(f)
-    
-    model_type = toolbox.enum_qcGen_modelType
+    model_type = _get_model_type(context)
     allowed = MODEL_TYPE_CATEGORY_MAP.get(model_type, [])
     
     items = [
@@ -62,6 +113,10 @@ def activity_category_items(self, context):
     
     return [none_enum] + items if items else [none_enum]
 
+
+# ============================================================================
+# Property Groups
+# ============================================================================
 
 class SequenceItem(bpy.types.PropertyGroup):
     """Single animation sequence with metadata."""
@@ -113,7 +168,10 @@ class SequenceRigData(bpy.types.PropertyGroup):
     )  # type: ignore
 
 
+# ============================================================================
 # Registration
+# ============================================================================
+
 CLASSES = [
     SequenceItem,
     SequenceRigData,

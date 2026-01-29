@@ -1,16 +1,17 @@
 """
-UI Panels for QC Functionality
+QC Generator Panels for VonSourceTools.
 """
 import bpy  # type: ignore
 
+
 # ============================================================================
-# QC Generator Panels
+# QC Generator Main Panel
 # ============================================================================
 
 class VON_PT_qc_generator_main(bpy.types.Panel):
     """QC Generator main panel"""
     bl_idname = "VON_PT_qc_generator_main"
-    bl_label = "QC Generator Main"
+    bl_label = "QC Generator"
     bl_parent_id = "VON_PT_parent"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -24,46 +25,47 @@ class VON_PT_qc_generator_main(bpy.types.Panel):
         should_gen_collis = toolbox.bool_qcGen_generateCollission
         layout = self.layout
         
-        layout.label(text="QC Generator")
+        # Generate buttons
+        row = layout.row(align=True)
+        row.scale_y = 1.5
+        row.operator(f"von.qcgenerator_{qc_type.lower()}", icon='CHECKMARK', text="Generate QC")
+        row.operator("von.qcgenerator_preview", icon='HIDE_OFF', text="Preview")
         
-        # Generate button
-        row = layout.row()
-        row.scale_y = 2
-        row.operator(f"von.qcgenerator_{qc_type.lower()}", icon='CHECKMARK')
-        
-        # Data gathering box
+        # Model settings box
         box = layout.box()
-        box.label(text="Data Gathering:")
-        split = box.split(factor=0.5)
+        box.label(text="Model Settings:", icon='SETTINGS')
         
-        # Left column - Main settings
-        left_col = split.column()
-        left_col.label(text="Main Settings:")
-        left_col.prop(toolbox, "enum_qcGen_modelType")
-        left_col.prop(toolbox, "string_qcGen_outputPath")
+        col = box.column(align=True)
+        col.prop(toolbox, "enum_qcGen_modelType", text="Type")
+        col.prop(toolbox, "string_qcGen_mdlModelName", text="Model Name")
+        col.prop(toolbox, "string_qcGen_outputPath", text="Output Path")
         
-        # Right column - Advanced options
-        right_col = split.column()
-        right_col.label(text="Advanced Options:")
-        right_col.prop(toolbox, "int_qcGen_scale")
-        right_col.prop(toolbox, "bool_qcGen_generateCollission")
+        # Scale and collision
+        col.separator()
+        row = col.row(align=True)
+        row.prop(toolbox, "int_qcGen_scale", text="Scale")
+        
+        col.prop(toolbox, "bool_qcGen_generateCollission", text="Auto-Generate Collision")
         
         if not should_gen_collis:
-            right_col.prop(toolbox, "string_qcGen_existingCollissionCollection")
-        else:
-            right_col.label(text="Will Generate Collision")
+            col.prop(toolbox, "string_qcGen_existingCollissionCollection", text="Collision Collection")
         
         # Surface prop box
         box = layout.box()
-        box.label(text="SurfaceProp:")
-        box.prop(toolbox, "enum_surfaceprop_category")
-        box.prop(toolbox, "enum_surfaceprop_item")
+        box.label(text="Surface Property:", icon='MATERIAL')
+        col = box.column(align=True)
+        col.prop(toolbox, "enum_surfaceprop_category", text="Category")
+        col.prop(toolbox, "enum_surfaceprop_item", text="Surface")
 
+
+# ============================================================================
+# QC Bodygroups Panel
+# ============================================================================
 
 class VON_PT_qc_bodygroups(bpy.types.Panel):
     """QC Generator bodygroups panel"""
     bl_idname = "VON_PT_qc_bodygroups"
-    bl_label = "QC Generator Bodygroups"
+    bl_label = "Bodygroups"
     bl_parent_id = "VON_PT_qc_generator_main"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -75,27 +77,34 @@ class VON_PT_qc_bodygroups(bpy.types.Panel):
         qc_data = scene.QC_PrimaryData
         layout = self.layout
         
-        layout.label(text="Bodygroup Definer")
+        # Refresh and count controls
+        row = layout.row(align=True)
+        row.operator("von.qcgenerator_refresh_collections", icon='FILE_REFRESH')
+        row.prop(qc_data, "num_boxes", text="Count")
         
-        box = layout.box()
-        box.operator("von.qcgenerator_refresh_collections", icon='FILE_REFRESH')
-        
-        box = layout.box()
-        box.label(text="Bodygroups:")
-        box.prop(qc_data, "num_boxes")
-        
-        for bg_box in qc_data.bodygroup_boxes:
-            bg_ui = box.box()
-            bg_ui.prop(bg_box, "name", text="Bodygroup")
+        # Draw each bodygroup box
+        for i, bodygroup_box in enumerate(qc_data.bodygroup_boxes):
+            box = layout.box()
             
-            for item in bg_box.collections:
-                bg_ui.prop(item, "enabled", text=item.name)
+            # Bodygroup header
+            row = box.row()
+            row.prop(bodygroup_box, "name", text="", icon='GROUP')
+            
+            # Collection checkboxes
+            col = box.column(align=True)
+            for col_item in bodygroup_box.collections:
+                row = col.row()
+                row.prop(col_item, "enabled", text=col_item.name)
 
+
+# ============================================================================
+# QC Materials Panel
+# ============================================================================
 
 class VON_PT_qc_materials(bpy.types.Panel):
-    """QC Generator material folders panel"""
+    """QC Generator materials panel"""
     bl_idname = "VON_PT_qc_materials"
-    bl_label = "QC Generator MaterialFolders"
+    bl_label = "Material Paths (cdmaterials)"
     bl_parent_id = "VON_PT_qc_generator_main"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -107,20 +116,24 @@ class VON_PT_qc_materials(bpy.types.Panel):
         qc_data = scene.QC_PrimaryData
         layout = self.layout
         
-        layout.label(text="Bodygroup Material Folder Locations")
+        row = layout.row()
+        row.prop(qc_data, "num_vmt_files", text="Number of Paths")
         
-        box = layout.box()
-        box.label(text="VMT Filepaths:")
-        box.prop(qc_data, "num_vmt_files")
-        
+        col = layout.column(align=True)
         for i, vmt_item in enumerate(qc_data.vmt_filepaths):
-            box.prop(vmt_item, "filepath", text=f"VMT {i+1}")
+            row = col.row(align=True)
+            row.label(text=f"{i + 1}:")
+            row.prop(vmt_item, "filepath", text="")
 
+
+# ============================================================================
+# QC Animations Panel
+# ============================================================================
 
 class VON_PT_qc_animations(bpy.types.Panel):
-    """QC Generator animation selector panel"""
+    """QC Generator animations panel"""
     bl_idname = "VON_PT_qc_animations"
-    bl_label = "QC Generator Animation Selector"
+    bl_label = "Animations"
     bl_parent_id = "VON_PT_qc_generator_main"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -128,29 +141,50 @@ class VON_PT_qc_animations(bpy.types.Panel):
     bl_options = {'DEFAULT_CLOSED'}
     
     def draw(self, context):
+        scene = context.scene
+        toolbox = scene.toolBox
+        qc_data = scene.QC_PrimaryData
         layout = self.layout
-        primary_data = context.scene.QC_PrimaryData
         
-        layout.operator("von.collect_sequences", icon='ARMATURE_DATA')
+        # Collect sequences button
+        layout.operator("von.collect_sequences", icon='ACTION', text="Collect from Selected Armatures")
         
-        for rig in primary_data.sequence_objectdata:
-            rig_box = layout.box()
-            rig_box.label(text=rig.armatureName, icon='ARMATURE_DATA')
-            
-            for seq in rig.sequences:
-                seq_box = rig_box.box()
-                seq_box.label(text=f"AnimFile = {seq.originalName}")
-                row = seq_box.row()
-                row.prop(seq, "shouldExport", text="")
-                row.prop(seq, "sequenceName", text="")
-                seq_box.prop(seq, "enum_activity_category")
-                seq_box.prop(seq, "enum_activity")
+        # Character animation includes
+        if toolbox.enum_qcGen_modelType in ('CHARACTER', 'NPC'):
+            box = layout.box()
+            box.label(text="Include Base Animations:", icon='ARMATURE_DATA')
+            box.prop(toolbox, "enum_qcGen_charAnimIncludes", text="")
+        
+        # Display collected sequences
+        if qc_data.sequence_objectdata:
+            for rig_data in qc_data.sequence_objectdata:
+                box = layout.box()
+                box.label(text=f"Rig: {rig_data.armatureName}", icon='ARMATURE_DATA')
+                
+                for seq in rig_data.sequences:
+                    seq_box = box.box()
+                    row = seq_box.row()
+                    row.prop(seq, "shouldExport", text="")
+                    row.label(text=seq.originalName)
+                    
+                    if seq.shouldExport:
+                        col = seq_box.column(align=True)
+                        col.prop(seq, "sequenceName", text="Name")
+                        row = col.row(align=True)
+                        row.prop(seq, "enum_activity_category", text="")
+                        row.prop(seq, "enum_activity", text="")
+        else:
+            layout.label(text="No sequences collected", icon='INFO')
 
+
+# ============================================================================
+# QC Advanced Panel
+# ============================================================================
 
 class VON_PT_qc_advanced(bpy.types.Panel):
     """QC Generator advanced settings panel"""
     bl_idname = "VON_PT_qc_advanced"
-    bl_label = "QC Generator Advanced"
+    bl_label = "Advanced Settings"
     bl_parent_id = "VON_PT_qc_generator_main"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -158,16 +192,44 @@ class VON_PT_qc_advanced(bpy.types.Panel):
     bl_options = {'DEFAULT_CLOSED'}
     
     def draw(self, context):
+        from ..data.paths import get_studiomdl_path
+        
+        scene = context.scene
+        toolbox = scene.toolBox
         layout = self.layout
-        layout.label(text="QC Generator Advanced Settings")
+        
+        # Definebones settings
+        box = layout.box()
+        box.label(text="Definebones:", icon='BONE_DATA')
+        box.prop(toolbox, "bool_qcGen_shouldDefineBones", text="Generate definebones.qci")
+        
+        if toolbox.bool_qcGen_shouldDefineBones:
+            box.operator("von.run_definebones_vondata", icon='ARMATURE_DATA', text="Run DefineBones")
+        
+        # StudioMDL settings
+        box = layout.box()
+        box.label(text="StudioMDL:", icon='CONSOLE')
+        
+        # Check if studiomdl is bundled/configured
+        studiomdl_path = get_studiomdl_path()
+        if studiomdl_path:
+            row = box.row()
+            row.label(text="✓ StudioMDL: Found", icon='CHECKMARK')
+        else:
+            row = box.row()
+            row.label(text="StudioMDL: Not found", icon='ERROR')
+            box.prop(toolbox, "string_studiomdl_filelocation", text="Path")
+            box.label(text="Place studiomdl.exe in addon's tools/studiomdl/ folder", icon='INFO')
+        
+        box.prop(toolbox, "string_gmodexe_path", text="GMod Path")
+        box.prop(toolbox, "bool_studiomdl_verbose", text="Verbose Output")
+
 
 # ============================================================================
 # Registration
 # ============================================================================
 
 CLASSES = [
-    
-    # QC Generator panels
     VON_PT_qc_generator_main,
     VON_PT_qc_bodygroups,
     VON_PT_qc_materials,

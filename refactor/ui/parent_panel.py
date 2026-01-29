@@ -1,5 +1,5 @@
 """
-UI Panels for VonSourceTools.
+Parent Panel for VonSourceTools.
 """
 import bpy  # type: ignore
 
@@ -21,15 +21,12 @@ class VON_PT_parent(bpy.types.Panel):
         layout = self.layout
 
 
-
-
 # ============================================================================
 # Registration
 # ============================================================================
 
 CLASSES = [
-    # Parent panel
-    VON_PT_parent
+    VON_PT_parent,
 ]
 
 

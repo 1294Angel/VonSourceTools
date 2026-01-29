@@ -4,6 +4,8 @@ StudioMDL compilation utilities.
 import subprocess
 from pathlib import Path
 
+from ..data.paths import get_studiomdl_path
+
 
 def run_definebones(
     studiomdl_exe: Path,
@@ -63,6 +65,42 @@ def run_definebones(
     return result.stdout, result.stderr
 
 
+def resolve_studiomdl_path(ui_path: str = "") -> Path:
+    """
+    Resolve the studiomdl.exe path using multiple sources.
+    
+    Resolution order:
+    1. Bundled/configured path from data/paths.py
+    2. UI-specified path
+    
+    Args:
+        ui_path: Optional path specified in UI
+    
+    Returns:
+        Path to studiomdl.exe
+    
+    Raises:
+        FileNotFoundError: If studiomdl cannot be found
+    """
+    # Try bundled/configured path first
+    bundled_path = get_studiomdl_path()
+    if bundled_path and bundled_path.exists():
+        return bundled_path
+    
+    # Try UI path
+    if ui_path:
+        ui_path_obj = Path(ui_path)
+        if ui_path_obj.exists():
+            return ui_path_obj
+    
+    raise FileNotFoundError(
+        "StudioMDL not found. Please either:\n"
+        "1. Place studiomdl.exe in the addon's tools/studiomdl/ folder\n"
+        "2. Set STUDIOMDL_PATH in data/paths.py\n"
+        "3. Specify the path in the UI"
+    )
+
+
 def run_definebones_from_context(context) -> tuple:
     """
     Run definebones using settings from the toolbox.
@@ -76,8 +114,11 @@ def run_definebones_from_context(context) -> tuple:
     scene = context.scene
     toolbox = scene.toolBox
     
+    # Resolve studiomdl path
+    studiomdl_path = resolve_studiomdl_path(toolbox.string_studiomdl_filelocation)
+    
     return run_definebones(
-        studiomdl_exe=toolbox.string_studiomdl_filelocation,
+        studiomdl_exe=studiomdl_path,
         qc_path=toolbox.string_qcGen_outputPath,
         gmod_exe=toolbox.string_gmodexe_path,
         verbose=toolbox.bool_studiomdl_verbose

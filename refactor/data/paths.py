@@ -1,8 +1,30 @@
 """
 Path constants for addon data files.
+
+IMPORTANT: External tool paths are configured here.
+If you need to change tool locations, modify the variables below.
 """
 from pathlib import Path
 
+
+# ============================================================================
+# EXTERNAL TOOL PATHS - MODIFY THESE IF NEEDED
+# ============================================================================
+
+# VTFCmd.exe location - Set this to your VTFCmd installation path
+# Default: looks in addon's "tools/vtfcmd" folder
+# You can change this to an absolute path if VTFCmd is installed elsewhere
+# Example: VTFCMD_PATH = Path("C:/Program Files/VTFEdit/VTFCmd.exe")
+VTFCMD_PATH = None  # Set to None to use addon's bundled version or UI path
+
+# StudioMDL path - typically found in your Source SDK bin folder
+# Example: STUDIOMDL_PATH = Path("C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2/bin/studiomdl.exe")
+STUDIOMDL_PATH = None
+
+
+# ============================================================================
+# Addon Directory Functions
+# ============================================================================
 
 def get_addon_directory() -> Path:
     """Get the root directory of this addon."""
@@ -12,6 +34,11 @@ def get_addon_directory() -> Path:
 def get_data_directory() -> Path:
     """Get the addon's storeditems directory."""
     return get_addon_directory() / "storeditems"
+
+
+def get_tools_directory() -> Path:
+    """Get the addon's tools directory for bundled executables."""
+    return get_addon_directory() / "tools"
 
 
 def get_deltaanimtrick_directory() -> Path:
@@ -34,7 +61,88 @@ def get_commands_directory() -> Path:
     return get_templates_directory() / "commands"
 
 
-# Specific file paths
+# ============================================================================
+# External Tool Path Functions
+# ============================================================================
+
+def get_vtfcmd_path() -> Path:
+    """
+    Get the path to VTFCmd.exe.
+    
+    Resolution order:
+    1. VTFCMD_PATH constant if set (at top of this file)
+    2. Bundled version in addon's tools/vtfcmd folder
+    3. Returns None if not found (UI path will be used)
+    
+    Returns:
+        Path to VTFCmd.exe or None if not found
+    """
+    # Check if constant is set
+    if VTFCMD_PATH is not None:
+        vtfcmd = Path(VTFCMD_PATH)
+        if vtfcmd.exists():
+            return vtfcmd
+    
+    # Check bundled version
+    bundled_vtfcmd = get_tools_directory() / "vtfcmd" / "VTFCmd.exe"
+    if bundled_vtfcmd.exists():
+        return bundled_vtfcmd
+    
+    # Not found - will need to use UI path
+    return None
+
+
+def get_studiomdl_path() -> Path:
+    """
+    Get the path to studiomdl.exe.
+    
+    Resolution order:
+    1. STUDIOMDL_PATH constant if set (at top of this file)
+    2. Bundled version in addon's tools/studiomdl folder
+    3. Returns None if not found (UI path will be used)
+    
+    Returns:
+        Path to studiomdl.exe or None if not found
+    """
+    # Check if constant is set
+    if STUDIOMDL_PATH is not None:
+        studiomdl = Path(STUDIOMDL_PATH)
+        if studiomdl.exists():
+            return studiomdl
+    
+    # Check bundled version
+    bundled_studiomdl = get_tools_directory() / "studiomdl" / "studiomdl.exe"
+    if bundled_studiomdl.exists():
+        return bundled_studiomdl
+    
+    # Not found - will need to use UI path
+    return None
+
+
+def is_studiomdl_bundled() -> bool:
+    """
+    Check if StudioMDL is available from bundled or configured path.
+    
+    Returns:
+        True if StudioMDL is available, False otherwise
+    """
+    return get_studiomdl_path() is not None
+
+
+def is_vtfcmd_bundled() -> bool:
+    """
+    Check if VTFCmd is available from bundled or configured path.
+    
+    Returns:
+        True if VTFCmd is available, False otherwise
+    """
+    return get_vtfcmd_path() is not None
+
+
+# ============================================================================
+# Specific File Paths
+# ============================================================================
+
 def get_surfaceprops_path() -> Path:
     """Get the surfaceprops.json file path."""
     return get_templates_directory() / "surfaceprops.json"

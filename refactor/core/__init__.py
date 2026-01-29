@@ -10,6 +10,7 @@ from . import sequences
 from . import vtf_conversion
 from . import smd_export
 from . import studiomdl
+from . import material_vtf
 
 __all__ = [
     'delta_anim',
@@ -19,4 +20,5 @@ __all__ = [
     'vtf_conversion',
     'smd_export',
     'studiomdl',
+    'material_vtf',
 ]

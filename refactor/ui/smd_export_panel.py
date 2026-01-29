@@ -1,4 +1,9 @@
-import bpy
+"""
+SMD Export Panel for VonSourceTools.
+"""
+import bpy  # type: ignore
+
+
 # ============================================================================
 # SMD Export Panel
 # ============================================================================
@@ -27,6 +32,7 @@ class VON_PT_smd_export(bpy.types.Panel):
         layout.label(text="Export:")
         layout.prop(toolbox, "string_export_folder", text="Folder")
         layout.operator("object.export_smd", icon='EXPORT')
+
 
 # ============================================================================
 # Registration
