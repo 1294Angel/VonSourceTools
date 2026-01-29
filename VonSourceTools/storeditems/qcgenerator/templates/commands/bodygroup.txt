@@ -1,3 +1,0 @@
-$bodygroup "{bodygroupName}" {{
-{bodygroupLines}
-}}
