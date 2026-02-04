@@ -7,6 +7,7 @@ from . import smd_operators
 from . import vtf_operators
 from . import studiomdl_operators
 from . import material_vtf_operators
+from . import textureatlasing_operators
 
 MODULES = [
     delta_anim_operators,
@@ -15,6 +16,7 @@ MODULES = [
     vtf_operators,
     studiomdl_operators,
     material_vtf_operators,
+    textureatlasing_operators
 ]
 
 

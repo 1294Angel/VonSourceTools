@@ -13,6 +13,7 @@ from .delta_anim_properties import DeltaAnimSettings
 from .image_converter_properties import ImageConverterSettings
 from .smd_export_properties import SMDExportSettings
 from .sequence_properties import SequenceRigData
+from .texture_atlas_properties import TextureAtlasSettings,texture_atlas_mesh_item
 
 
 def register_scene_properties():
@@ -21,9 +22,6 @@ def register_scene_properties():
     # QC Generator
     bpy.types.Scene.von_qc_data = PointerProperty(type=QC_PrimaryData)
     bpy.types.Scene.von_qc_settings = PointerProperty(type=QCGeneratorSettings)
-    
-    # Also register with legacy name for backwards compatibility during transition
-    bpy.types.Scene.QC_PrimaryData = PointerProperty(type=QC_PrimaryData)
     
     # Delta Animation
     bpy.types.Scene.von_delta_anim = PointerProperty(type=DeltaAnimSettings)
@@ -37,6 +35,10 @@ def register_scene_properties():
     # Sequence data index for UI lists
     bpy.types.Scene.von_sequence_index = IntProperty(default=0)
 
+    #Image Atlas Packer Data
+    bpy.types.Scene.von_textureatlas_settings = PointerProperty(type=TextureAtlasSettings)
+    bpy.types.Scene.von_textureatlas_mesh_item = PointerProperty(type=texture_atlas_mesh_item)
+
 
 def unregister_scene_properties():
     """Unregister all scene properties."""
@@ -48,6 +50,8 @@ def unregister_scene_properties():
         'von_image_converter',
         'von_smd_export',
         'von_sequence_index',
+        'von_textureatlas_settings',
+        'von_textureatlas_mesh_item',
     ]
     
     for prop_name in properties_to_remove:

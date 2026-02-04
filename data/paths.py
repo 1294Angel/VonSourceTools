@@ -5,6 +5,7 @@ IMPORTANT: External tool paths are configured here.
 If you need to change tool locations, modify the variables below.
 """
 from pathlib import Path
+from typing import Optional
 
 
 # ============================================================================
@@ -22,7 +23,9 @@ VTFCMD_PATH = Path(__file__).parent.parent / "external_software_dependancies" / 
 # Example: STUDIOMDL_PATH = Path("C:/Program Files (x86)/Steam/steamapps/common/Team Fortress 2/bin/studiomdl.exe")
 STUDIOMDL_PATH = Path(__file__).parent.parent / "external_software_dependancies" / "studiomdl" / "bin" / "studiomdl.exe"
 
-
+# Pillow libary path - can be freely downloaded online
+# Default: Looks in addon's "storeditems/libraries/pillow"
+PILLOW_LIB_PATH = Path(__file__).parent.parent / "libraries" / "pillow"
 # ============================================================================
 # Addon Directory Functions
 # ============================================================================
@@ -89,6 +92,11 @@ def get_default_studiomdl_path() -> str:
         String path to the expected studiomdl location
     """
     return str(get_external_software_directory() / "studiomdl" / "bin" / "studiomdl.exe")
+
+def get_default_pillow_path() -> Path:
+    """Get the default bundled Pillow library path."""
+    return get_data_directory() / "libraries" / "pillow"
+
 
 
 # ============================================================================
@@ -180,6 +188,17 @@ def is_vtfcmd_bundled() -> bool:
     """
     return get_vtfcmd_path() is not None
 
+def get_pillow_path() -> Optional[Path]:
+    """
+    Get the Pillow library path if available.
+    
+    Returns:
+        Path to Pillow library, or None if not found
+    """
+    default_path = get_default_pillow_path()
+    if default_path.exists():
+        return default_path
+    return None
 
 # ============================================================================
 # Specific File Paths

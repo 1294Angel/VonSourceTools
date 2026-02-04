@@ -5,7 +5,7 @@ This module contains all properties displayed in the Image Filetype Converter pa
 Used for batch converting between image formats (PNG, JPG, TGA, VTF, etc.).
 """
 import bpy  # type: ignore
-from bpy.props import StringProperty, EnumProperty
+from bpy.props import StringProperty, EnumProperty # type: ignore
 
 
 # ============================================================================

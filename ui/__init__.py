@@ -8,6 +8,7 @@ Each panel section is in its own file for better organization:
 - vmt_generator_panels.py: VMT/Material to VTF panels
 - image_converter_panel.py: Image converter panel
 - smd_export_panel.py: SMD export panel
+- textureatlas_panels: Texture atlas panel
 """
 from . import parent_panel
 from . import qc_panels
@@ -15,7 +16,7 @@ from . import delta_anim_panels
 from . import vmt_generator_panels
 from . import image_converter_panel
 from . import smd_export_panel
-
+from . import textureatlas_panels
 # Registration order matters - parent panel must be first
 MODULES = [
     parent_panel,
@@ -24,6 +25,8 @@ MODULES = [
     vmt_generator_panels,
     image_converter_panel,
     smd_export_panel,
+    textureatlas_panels,
+    
 ]
 
 

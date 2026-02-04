@@ -4,7 +4,7 @@ Properties for Material to VTF conversion.
 This module handles converting Blender materials to VTF format
 and generating VMT files with advanced shader parameters.
 """
-import bpy
+import bpy # type: ignore
 from bpy.props import (
     StringProperty,
     BoolProperty,

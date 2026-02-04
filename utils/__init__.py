@@ -10,6 +10,9 @@ from .blender_utils import (
     get_selected_armatures,
     ensure_object_mode,
     clear_screen,
+    get_selected_meshes,
+    get_meshes_from_armature,
+    get_armature_for_mesh,
 )
 from .file_utils import (
     load_json_data,
@@ -38,6 +41,9 @@ __all__ = [
     'get_selected_armatures',
     'ensure_object_mode',
     'clear_screen',
+    'get_selected_meshes',
+    'get_meshes_from_armature',
+    'get_armature_for_mesh',
     # File utilities
     'load_json_data',
     'get_addon_directory',
