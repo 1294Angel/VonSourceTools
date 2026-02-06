@@ -1,4 +1,4 @@
-# VonSourceTools v1.0.0
+# VonSourceTools v1.3.3
 I've had the documentation and comments on the code AI generated because it's driving me insane xD You'll have to forgive that
 #
 The ultimate Blender addon for Source Engine content creation. Streamline your workflow with integrated tools for materials, models, and animations.
